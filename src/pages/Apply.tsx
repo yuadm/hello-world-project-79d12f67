@@ -17,6 +17,7 @@ import { Section7People } from "@/components/apply/Section7People";
 import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { getValidatorForSection } from "@/lib/formValidation";
 
 const formSchema = z.object({
   // Basic validation - sections will have their own detailed validation
@@ -102,6 +103,16 @@ const Apply = () => {
   }, [form]);
 
   const nextSection = () => {
+    // Validate current section before proceeding
+    const validator = getValidatorForSection(currentSection);
+    const validation = validator(form.getValues());
+    
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    
     setErrors([]);
     if (currentSection < totalSections) {
       setCurrentSection(currentSection + 1);
@@ -118,10 +129,19 @@ const Apply = () => {
   };
 
   const onSubmit = form.handleSubmit((data) => {
-    // Validate signature
-    const fullName = `${data.title} ${data.firstName} ${data.lastName}`;
-    if (data.signatureFullName !== fullName) {
-      setErrors(["Signature must match your full legal name"]);
+    // Final validation of all sections
+    const allErrors: string[] = [];
+    for (let section = 1; section <= totalSections; section++) {
+      const validator = getValidatorForSection(section);
+      const validation = validator(data);
+      if (!validation.isValid) {
+        allErrors.push(...validation.errors.map(err => `Section ${section}: ${err}`));
+      }
+    }
+
+    if (allErrors.length > 0) {
+      setErrors(allErrors);
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 

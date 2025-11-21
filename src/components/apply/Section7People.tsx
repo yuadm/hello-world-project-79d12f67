@@ -17,6 +17,10 @@ export const Section7People = ({ form }: Props) => {
   const adults = watch("adults") || [];
   const childrenInHome = watch("childrenInHome");
   const children = watch("children") || [];
+  const premisesType = watch("premisesType");
+  
+  // Only show household member questions for domestic premises
+  const showHouseholdQuestions = premisesType === "Domestic" || !premisesType;
 
   const addAssistant = () => {
     setValue("assistants", [...assistants, { fullName: "", relationship: "", dob: "" }]);
@@ -109,7 +113,9 @@ export const Section7People = ({ form }: Props) => {
         </div>
       )}
 
-      {/* Adults in Home */}
+      {/* Adults in Home - Only for domestic premises */}
+      {showHouseholdQuestions && (
+        <>
       <GovUKRadio
         legend="Do any other adults (aged 16+) live at your childminding premises?"
         hint="Include partners, adult children, relatives, lodgers, etc."
@@ -230,6 +236,16 @@ export const Section7People = ({ form }: Props) => {
             <Plus className="h-4 w-4" />
             Add child
           </GovUKButton>
+        </div>
+      )}
+        </>
+      )}
+
+      {!showHouseholdQuestions && (
+        <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
+          <p className="text-sm">
+            <strong>Note:</strong> Household member questions are not required for non-domestic premises.
+          </p>
         </div>
       )}
     </div>
