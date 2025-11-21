@@ -44,20 +44,28 @@ All colors MUST be HSL.
     --shadow-medium: 0 8px 30px -4px hsl(210 85% 45% / 0.15);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+    /* GOV.UK Design System tokens */
+    --govuk-black: 222 16% 5%;
+    --govuk-white: 0 0% 100%;
+    --govuk-green: 150 100% 22%;
+    --govuk-green-hover: 150 100% 18%;
+    --govuk-red: 0 73% 49%;
+    --govuk-blue: 208 82% 41%;
+    --govuk-focus-yellow: 48 100% 50%;
+    --govuk-grey-background: 0 0% 95%;
+    --govuk-grey-border: 0 0% 70%;
+    --govuk-text-secondary: 0 0% 31%;
+    --govuk-inset-grey: 0 0% 95%;
+    --govuk-inset-red-bg: 0 100% 99%;
+    --govuk-inset-blue-bg: 208 100% 97%;
+
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 

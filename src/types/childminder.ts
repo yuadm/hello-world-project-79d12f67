@@ -1,0 +1,159 @@
+export interface PreviousName {
+  fullName: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
+export interface Address {
+  line1: string;
+  line2?: string;
+  town: string;
+  postcode: string;
+}
+
+export interface AddressHistory {
+  address: Address;
+  moveIn: string;
+  moveOut: string;
+}
+
+export interface TrainingEntry {
+  completed: "Yes" | "No";
+  provider?: string;
+  completionDate?: string;
+  certificateNumber?: string;
+}
+
+export interface EmploymentEntry {
+  employer: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  reasonForLeaving: string;
+}
+
+export interface PersonEntry {
+  fullName: string;
+  relationship: string;
+  dob: string;
+}
+
+export interface ChildEntry {
+  fullName: string;
+  dob: string;
+}
+
+export interface RegistrationEntry {
+  regulator: string;
+  registrationNumber: string;
+  dates: string;
+  status: string;
+}
+
+export interface OffenceEntry {
+  date: string;
+  offence: string;
+  sentence: string;
+}
+
+export interface ChildminderApplication {
+  // Section 1: Personal Details
+  title: string;
+  firstName: string;
+  middleNames?: string;
+  lastName: string;
+  gender: "Male" | "Female";
+  otherNames: "Yes" | "No";
+  previousNames: PreviousName[];
+  dob: string;
+  rightToWork: string;
+  email: string;
+  phone: string;
+  niNumber: string;
+
+  // Section 2: Address History
+  homePostcode: string;
+  homeAddress: Address;
+  homeMoveIn: string;
+  addressHistory: AddressHistory[];
+  addressGaps?: string;
+  livedOutsideUK: "Yes" | "No";
+  militaryBase: "Yes" | "No";
+
+  // Section 3: Premises
+  localAuthority: string;
+  premisesType: "Domestic" | "Non-domestic";
+  sameAddress?: "Yes" | "No";
+  childcareAddress?: Address;
+  useAdditionalPremises: "Yes" | "No";
+  additionalPremises?: Array<{ address: string; reason: string }>;
+  outdoorSpace: "Yes" | "No";
+  pets: "Yes" | "No";
+  petsDetails?: string;
+
+  // Section 4: Service
+  ageGroups: string[];
+  workWithOthers: "Yes" | "No";
+  numberOfAssistants?: number;
+  proposedUnder1?: number;
+  proposedUnder5?: number;
+  proposed5to8?: number;
+  proposed8plus?: number;
+
+  // Section 5: Qualifications
+  firstAid: TrainingEntry;
+  safeguarding?: TrainingEntry;
+  eyfsChildminding?: TrainingEntry;
+  level2Qual?: TrainingEntry;
+
+  // Section 6: Employment
+  employmentHistory: EmploymentEntry[];
+  employmentGaps?: string;
+  childVolunteered: "Yes" | "No";
+  childVolunteeredConsent?: boolean;
+  reference1Name: string;
+  reference1Relationship: string;
+  reference1Contact: string;
+  reference1Childcare: "Yes" | "No";
+  reference2Name: string;
+  reference2Relationship: string;
+  reference2Contact: string;
+  reference2Childcare: "Yes" | "No";
+
+  // Section 7: People Connected
+  assistants?: PersonEntry[];
+  adultsInHome: "Yes" | "No";
+  adults?: PersonEntry[];
+  childrenInHome: "Yes" | "No";
+  children?: ChildEntry[];
+
+  // Section 8: Suitability
+  prevRegOfsted?: RegistrationEntry[];
+  prevRegAgency?: RegistrationEntry[];
+  prevRegOtherUK?: RegistrationEntry[];
+  prevRegEU?: RegistrationEntry[];
+  healthCondition: "Yes" | "No";
+  healthConditionDetails?: string;
+  smoker: "Yes" | "No";
+  disqualified: "Yes" | "No";
+  socialServices: "Yes" | "No";
+  socialServicesDetails?: string;
+  otherCircumstances: "Yes" | "No";
+  otherCircumstancesDetails?: string;
+  hasDBS: "Yes" | "No";
+  dbsNumber?: string;
+  dbsEnhanced?: "Yes" | "No";
+  dbsUpdate?: "Yes" | "No";
+  offenceHistory: "Yes" | "No";
+  offenceDetails?: OffenceEntry[];
+
+  // Section 9: Declaration
+  declarationAccuracy: boolean;
+  declarationChangeNotification: boolean;
+  declarationInspectionCooperation: boolean;
+  declarationInformationSharing: boolean;
+  declarationDataProcessing: boolean;
+  signatureFullName: string;
+  signatureDate: string;
+  paymentMethod: string;
+}
