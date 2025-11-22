@@ -122,7 +122,9 @@ export async function lookupAddressesByPostcode(postcode: string): Promise<Addre
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      console.error("Address lookup HTTP error:", response.status, errorData);
+      // Gracefully fall back to manual entry by returning an empty list
+      return [];
     }
 
     const data = await response.json();
@@ -151,9 +153,7 @@ export async function lookupAddressesByPostcode(postcode: string): Promise<Addre
     return [];
   } catch (error) {
     console.error("Address lookup error:", error);
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error("Failed to lookup addresses. Please try again.");
+    // On any error, return an empty list so the UI can fall back to manual entry
+    return [];
   }
 }
