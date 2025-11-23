@@ -64,6 +64,11 @@ export function validateSection2(data: Partial<ChildminderApplication>): Validat
   if (!data.homeAddress?.town) errors.push("Home town is required");
   if (!data.homeMoveIn) errors.push("Move-in date for current address is required");
 
+  // Sanity check: home move-in date should not be in the future
+  if (data.homeMoveIn && new Date(data.homeMoveIn) > new Date()) {
+    errors.push("Move-in date for current address cannot be in the future");
+  }
+
   // Address history coverage
   if (data.homeMoveIn) {
     const coverage = calculateAddressHistoryCoverage(
@@ -71,18 +76,29 @@ export function validateSection2(data: Partial<ChildminderApplication>): Validat
       data.addressHistory || []
     );
     
-    if (!coverage.isCovered) {
-      errors.push("Your address history must cover the last 5 years. Please add previous addresses or explain gaps.");
+    const hasExplanation = !!data.addressGaps?.trim();
+
+    if (coverage.hasGaps && !hasExplanation) {
+      errors.push("Your address history has gaps. Please add previous addresses to cover them, or explain the gaps in the 'Explain any gaps' section.");
     }
   }
 
   // Validate each previous address
   if (data.addressHistory && data.addressHistory.length > 0) {
+    const today = new Date();
     data.addressHistory.forEach((addr, index) => {
       if (!addr.address?.line1) errors.push(`Previous address ${index + 1}: Address line 1 is required`);
       if (!addr.address?.town) errors.push(`Previous address ${index + 1}: Town is required`);
       if (!addr.moveIn) errors.push(`Previous address ${index + 1}: Move-in date is required`);
       if (!addr.moveOut) errors.push(`Previous address ${index + 1}: Move-out date is required`);
+      
+      // Sanity checks for future dates
+      if (addr.moveIn && new Date(addr.moveIn) > today) {
+        errors.push(`Previous address ${index + 1}: Move-in date cannot be in the future`);
+      }
+      if (addr.moveOut && new Date(addr.moveOut) > today) {
+        errors.push(`Previous address ${index + 1}: Move-out date cannot be in the future`);
+      }
       
       // Validate date order
       if (addr.moveIn && addr.moveOut && new Date(addr.moveIn) >= new Date(addr.moveOut)) {

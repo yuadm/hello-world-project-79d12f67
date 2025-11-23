@@ -245,8 +245,8 @@ export const Section2AddressHistory = ({ form }: Props) => {
                         </li>
                       ))}
                     </ul>
-                    <p className="text-sm mt-3">
-                      Please add previous addresses to fill these gaps, or explain them in the "Explain any gaps" section below.
+                    <p className="text-sm mt-3 font-semibold">
+                      You can either add previous addresses to cover these dates, or explain them in the "Explain any gaps" section below to proceed.
                     </p>
                   </div>
                 )}

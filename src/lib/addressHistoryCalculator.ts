@@ -8,10 +8,18 @@ export interface AddressPeriod {
 
 export interface AddressCoverage {
   isCovered: boolean;
+  hasGaps: boolean;
   gaps: Array<{ start: Date; end: Date }>;
   totalDaysCovered: number;
   requiredDays: number;
   coveragePercentage: number;
+}
+
+/**
+ * Normalize a date to midnight UTC to avoid time-of-day issues
+ */
+function normalizeDate(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 /**
@@ -22,7 +30,7 @@ export function calculateAddressHistoryCoverage(
   homeAddress: { moveIn: string },
   addressHistory: AddressHistory[]
 ): AddressCoverage {
-  const today = new Date();
+  const today = normalizeDate(new Date());
   const fiveYearsAgo = new Date(today);
   fiveYearsAgo.setFullYear(today.getFullYear() - 5);
 
@@ -31,9 +39,11 @@ export function calculateAddressHistoryCoverage(
 
   // Add current address
   if (homeAddress.moveIn) {
-    const moveInDate = new Date(homeAddress.moveIn);
+    const moveInDate = normalizeDate(new Date(homeAddress.moveIn));
+    // Clamp to today if move-in is in the future
+    const effectiveStart = moveInDate > today ? today : moveInDate;
     periods.push({
-      start: moveInDate,
+      start: effectiveStart,
       end: today,
       address: "Current address",
     });
@@ -42,14 +52,17 @@ export function calculateAddressHistoryCoverage(
   // Add previous addresses
   addressHistory.forEach((entry, index) => {
     if (entry.moveIn && entry.moveOut) {
-      const moveInDate = new Date(entry.moveIn);
-      const moveOutDate = new Date(entry.moveOut);
+      const moveInDate = normalizeDate(new Date(entry.moveIn));
+      const moveOutDate = normalizeDate(new Date(entry.moveOut));
+      
+      // Clamp move-out to today if it's in the future
+      const effectiveEnd = moveOutDate > today ? today : moveOutDate;
       
       // Only include valid date ranges
-      if (moveInDate < moveOutDate) {
+      if (moveInDate < effectiveEnd) {
         periods.push({
           start: moveInDate,
-          end: moveOutDate,
+          end: effectiveEnd,
           address: `Address ${index + 1}`,
         });
       }
@@ -91,10 +104,12 @@ export function calculateAddressHistoryCoverage(
   );
 
   const coveragePercentage = (totalDaysCovered / requiredDays) * 100;
-  const isCovered = gaps.length === 0 && coveragePercentage >= 99; // Allow 1% tolerance for rounding
+  const hasGaps = gaps.length > 0;
+  const isCovered = !hasGaps && coveragePercentage >= 99; // Allow 1% tolerance for rounding
 
   return {
     isCovered,
+    hasGaps,
     gaps,
     totalDaysCovered,
     requiredDays,
