@@ -37,7 +37,6 @@ export const GovUKInput = forwardRef<HTMLInputElement, GovUKInputProps>(
           ref={ref}
           className={cn(
             "border-2 border-[hsl(var(--govuk-black))] p-2 rounded-none text-base leading-normal box-border focus:outline-none focus:ring-[3px] focus:ring-[hsl(var(--govuk-focus-yellow))] focus:ring-offset-0 focus:shadow-[inset_0_0_0_2px_hsl(var(--govuk-black))]",
-            required && !error && "border-[hsl(var(--govuk-red))]",
             error && "border-[hsl(var(--govuk-red))] border-[4px]",
             widthClasses[widthClass],
             className
