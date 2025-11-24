@@ -744,7 +744,22 @@ const ApplicationDetail = () => {
           </Button>
           <div className="flex gap-2 items-center flex-wrap">
             {getStatusBadge(dbApplication.status)}
-            <Select value={dbApplication.status} onValueChange={updateStatus} disabled={updating}>
+            
+            {existingEmployeeId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/admin/employees/${existingEmployeeId}`)}
+              >
+                View Employee Record
+              </Button>
+            )}
+            
+            <Select 
+              value={dbApplication.status} 
+              onValueChange={updateStatus} 
+              disabled={updating || existingEmployeeId !== null}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Change status" />
               </SelectTrigger>
@@ -754,7 +769,14 @@ const ApplicationDetail = () => {
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={() => setIsEditMode(true)}>
+            
+            {existingEmployeeId && (
+              <p className="text-sm text-muted-foreground w-full">
+                Status cannot be changed after conversion to employee
+              </p>
+            )}
+            
+            <Button onClick={() => setIsEditMode(true)} disabled={existingEmployeeId !== null}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Application
             </Button>
