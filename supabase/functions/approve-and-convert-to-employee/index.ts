@@ -10,20 +10,25 @@ interface ApplicationData {
   first_name: string;
   last_name: string;
   email: string;
-  phone: string;
+  phone_mobile: string;
+  phone_home: string;
   date_of_birth: string;
-  ni_number: string;
-  address_line_1: string;
-  address_line_2: string;
-  town_city: string;
-  county: string;
-  postcode: string;
-  local_authority: string;
+  national_insurance_number: string;
+  current_address: {
+    line1: string;
+    line2?: string;
+    town: string;
+    county?: string;
+    postcode: string;
+  };
+  service_local_authority: string;
   local_authority_other: string;
-  premises_type: string;
-  premises_postcode: string;
-  age_groups_cared_for: any;
-  max_capacity: number;
+  premises_address: {
+    type?: string;
+    postcode?: string;
+  };
+  service_age_range: any;
+  service_capacity: any;
   service_type: string;
   first_aid_qualification: string;
   first_aid_expiry_date: string;
@@ -79,6 +84,24 @@ Deno.serve(async (req) => {
 
     console.log('Application fetched:', application.first_name, application.last_name);
 
+    // Helper function to calculate total capacity from service_capacity jsonb
+    const calculateTotalCapacity = (serviceCapacity: any): number => {
+      if (!serviceCapacity) return 0;
+      const capacities = Object.values(serviceCapacity);
+      return capacities.reduce((sum: number, val: any) => sum + (Number(val) || 0), 0);
+    };
+
+    // Log application data being transferred
+    console.log('Application data being transferred:', {
+      phone_mobile: application.phone_mobile,
+      phone_home: application.phone_home,
+      ni_number: application.national_insurance_number,
+      current_address: application.current_address,
+      service_local_authority: application.service_local_authority,
+      service_capacity: application.service_capacity,
+      calculated_capacity: calculateTotalCapacity(application.service_capacity)
+    });
+
     // Create employee record
     const { data: employee, error: empError } = await supabase
       .from('employees')
@@ -87,20 +110,20 @@ Deno.serve(async (req) => {
         first_name: application.first_name,
         last_name: application.last_name,
         email: application.email,
-        phone: application.phone,
+        phone: application.phone_mobile || application.phone_home || null,
         date_of_birth: application.date_of_birth,
-        ni_number: application.ni_number,
-        address_line_1: application.address_line_1,
-        address_line_2: application.address_line_2,
-        town_city: application.town_city,
-        county: application.county,
-        postcode: application.postcode,
-        local_authority: application.local_authority,
+        ni_number: application.national_insurance_number || null,
+        address_line_1: application.current_address?.line1 || null,
+        address_line_2: application.current_address?.line2 || null,
+        town_city: application.current_address?.town || null,
+        county: application.current_address?.county || null,
+        postcode: application.current_address?.postcode || null,
+        local_authority: application.service_local_authority || null,
         local_authority_other: application.local_authority_other,
-        premises_type: application.premises_type,
-        premises_postcode: application.premises_postcode,
-        age_groups_cared_for: application.age_groups_cared_for,
-        max_capacity: application.max_capacity,
+        premises_type: application.premises_address?.type || null,
+        premises_postcode: application.premises_address?.postcode || null,
+        age_groups_cared_for: application.service_age_range || null,
+        max_capacity: calculateTotalCapacity(application.service_capacity),
         service_type: application.service_type,
         first_aid_qualification: application.first_aid_qualification,
         first_aid_expiry_date: application.first_aid_expiry_date,
