@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Plus, Mail, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -26,20 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { EditEmployeeModal } from "@/components/admin/employee/EditEmployeeModal";
-import { AddHouseholdMemberModal } from "@/components/admin/employee/AddHouseholdMemberModal";
-import { EditHouseholdMemberModal } from "@/components/admin/employee/EditHouseholdMemberModal";
-import { RequestEmployeeDBSModal } from "@/components/admin/employee/RequestEmployeeDBSModal";
 
 const AdminEmployeeDetail = () => {
   const { id } = useParams();
@@ -48,14 +34,6 @@ const AdminEmployeeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [householdMembers, setHouseholdMembers] = useState<EmployeeHouseholdMember[]>([]);
-  const [editEmployeeOpen, setEditEmployeeOpen] = useState(false);
-  const [addMemberOpen, setAddMemberOpen] = useState(false);
-  const [editMemberOpen, setEditMemberOpen] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<EmployeeHouseholdMember | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
-  const [dbsRequestOpen, setDbsRequestOpen] = useState(false);
-  const [dbsRequestMember, setDbsRequestMember] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchEmployeeData();
@@ -97,45 +75,6 @@ const AdminEmployeeDetail = () => {
   const adults = householdMembers.filter(m => m.member_type === 'adult');
   const children = householdMembers.filter(m => m.member_type === 'child');
 
-  const handleDeleteMember = async () => {
-    if (!memberToDelete) return;
-
-    try {
-      const { error } = await supabase
-        .from('employee_household_members')
-        .delete()
-        .eq('id', memberToDelete);
-
-      if (error) throw error;
-
-      toast({
-        title: "Member Deleted",
-        description: "Household member has been removed",
-      });
-
-      fetchEmployeeData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to delete household member",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteDialogOpen(false);
-      setMemberToDelete(null);
-    }
-  };
-
-  const handleEditMember = (member: EmployeeHouseholdMember) => {
-    setSelectedMember(member);
-    setEditMemberOpen(true);
-  };
-
-  const handleRequestDBS = (memberId: string, memberName: string) => {
-    setDbsRequestMember({ id: memberId, name: memberName });
-    setDbsRequestOpen(true);
-  };
-
   if (loading || !employee) {
     return (
       <AdminLayout>
@@ -169,19 +108,9 @@ const AdminEmployeeDetail = () => {
               <p className="text-muted-foreground">{employee.email}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditEmployeeOpen(true)}
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Employee
-            </Button>
-            <Badge variant={getEmploymentStatusConfig(employee.employment_status).variant}>
-              {getEmploymentStatusConfig(employee.employment_status).label}
-            </Badge>
-          </div>
+          <Badge variant={getEmploymentStatusConfig(employee.employment_status).variant}>
+            {getEmploymentStatusConfig(employee.employment_status).label}
+          </Badge>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -248,22 +177,10 @@ const AdminEmployeeDetail = () => {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Household Members</CardTitle>
-                <CardDescription>
-                  Adults (16+) and Children (Under 16) living in the household
-                </CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAddMemberOpen(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Member
-              </Button>
-            </div>
+            <CardTitle>Household Members</CardTitle>
+            <CardDescription>
+              Adults (16+) and Children (Under 16) living in the household
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="adults">
@@ -282,13 +199,12 @@ const AdminEmployeeDetail = () => {
                         <TableHead>Relationship</TableHead>
                         <TableHead>DBS Status</TableHead>
                         <TableHead>DBS Expiry</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {adults.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             No adult household members
                           </TableCell>
                         </TableRow>
@@ -308,37 +224,6 @@ const AdminEmployeeDetail = () => {
                                 ? format(new Date(member.dbs_certificate_expiry_date), "MMM dd, yyyy")
                                 : "N/A"}
                             </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRequestDBS(member.id, member.full_name)}
-                                  title="Request DBS"
-                                >
-                                  <Mail className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditMember(member)}
-                                  title="Edit member"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setMemberToDelete(member.id);
-                                    setDeleteDialogOpen(true);
-                                  }}
-                                  title="Delete member"
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </TableCell>
                           </TableRow>
                         ))
                       )}
@@ -357,13 +242,12 @@ const AdminEmployeeDetail = () => {
                         <TableHead>Date of Birth</TableHead>
                         <TableHead>Relationship</TableHead>
                         <TableHead>Turns 16 On</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {children.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             No children household members
                           </TableCell>
                         </TableRow>
@@ -394,29 +278,6 @@ const AdminEmployeeDetail = () => {
                                   ({daysUntil16} days)
                                 </span>
                               </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleEditMember(member)}
-                                    title="Edit member"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setMemberToDelete(member.id);
-                                      setDeleteDialogOpen(true);
-                                    }}
-                                    title="Delete member"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                              </TableCell>
                             </TableRow>
                           );
                         })
@@ -429,61 +290,6 @@ const AdminEmployeeDetail = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Modals */}
-      {employee && (
-        <>
-          <EditEmployeeModal
-            open={editEmployeeOpen}
-            onOpenChange={setEditEmployeeOpen}
-            employee={employee}
-            onSuccess={fetchEmployeeData}
-          />
-
-          <AddHouseholdMemberModal
-            open={addMemberOpen}
-            onOpenChange={setAddMemberOpen}
-            employeeId={employee.id}
-            onSuccess={fetchEmployeeData}
-          />
-
-          {selectedMember && (
-            <EditHouseholdMemberModal
-              open={editMemberOpen}
-              onOpenChange={setEditMemberOpen}
-              member={selectedMember}
-              onSuccess={fetchEmployeeData}
-            />
-          )}
-
-          {dbsRequestMember && (
-            <RequestEmployeeDBSModal
-              open={dbsRequestOpen}
-              onOpenChange={setDbsRequestOpen}
-              memberId={dbsRequestMember.id}
-              memberName={dbsRequestMember.name}
-              employeeId={employee.id}
-              employeeName={`${employee.first_name} ${employee.last_name}`}
-              onSuccess={fetchEmployeeData}
-            />
-          )}
-        </>
-      )}
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Household Member</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this household member? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteMember}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AdminLayout>
   );
 };

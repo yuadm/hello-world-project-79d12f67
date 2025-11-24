@@ -10,21 +10,20 @@ interface ApplicationData {
   first_name: string;
   last_name: string;
   email: string;
-  phone_mobile: string;
-  phone_home: string;
+  phone: string;
   date_of_birth: string;
-  national_insurance_number: string;
+  ni_number: string;
   address_line_1: string;
   address_line_2: string;
   town_city: string;
   county: string;
   postcode: string;
-  service_local_authority: string;
+  local_authority: string;
   local_authority_other: string;
   premises_type: string;
   premises_postcode: string;
-  service_age_range: any;
-  service_capacity: any;
+  age_groups_cared_for: any;
+  max_capacity: number;
   service_type: string;
   first_aid_qualification: string;
   first_aid_expiry_date: string;
@@ -46,17 +45,6 @@ interface HouseholdMember {
   dbs_certificate_number: string;
   dbs_certificate_date: string;
   dbs_certificate_expiry_date: string;
-}
-
-function calculateTotalCapacity(serviceCapacity: any): number | null {
-  if (!serviceCapacity || typeof serviceCapacity !== 'object') {
-    return null;
-  }
-  
-  const capacityValues = Object.values(serviceCapacity).filter(v => typeof v === 'number');
-  return capacityValues.length > 0 
-    ? capacityValues.reduce((sum: number, val: any) => sum + val, 0)
-    : null;
 }
 
 Deno.serve(async (req) => {
@@ -99,20 +87,20 @@ Deno.serve(async (req) => {
         first_name: application.first_name,
         last_name: application.last_name,
         email: application.email,
-        phone: application.phone_mobile,
+        phone: application.phone,
         date_of_birth: application.date_of_birth,
-        ni_number: application.national_insurance_number,
+        ni_number: application.ni_number,
         address_line_1: application.address_line_1,
         address_line_2: application.address_line_2,
         town_city: application.town_city,
         county: application.county,
         postcode: application.postcode,
-        local_authority: application.service_local_authority,
+        local_authority: application.local_authority,
         local_authority_other: application.local_authority_other,
         premises_type: application.premises_type,
         premises_postcode: application.premises_postcode,
-        age_groups_cared_for: application.service_age_range,
-        max_capacity: calculateTotalCapacity(application.service_capacity),
+        age_groups_cared_for: application.age_groups_cared_for,
+        max_capacity: application.max_capacity,
         service_type: application.service_type,
         first_aid_qualification: application.first_aid_qualification,
         first_aid_expiry_date: application.first_aid_expiry_date,
