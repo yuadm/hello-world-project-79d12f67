@@ -8,33 +8,40 @@ interface ConnectionBannerProps {
 
 export function ConnectionBanner({ applicantName, applicantAddress, memberName }: ConnectionBannerProps) {
   return (
-    <div className="border-2 border-blue-300 bg-blue-50 dark:bg-blue-950 p-4 rounded-md mb-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <p className="font-bold text-blue-800 dark:text-blue-200">
-            Connected to Childminder Registration:
+    <div className="border-[3px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))] p-5 mb-8 no-print">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex-1">
+          <p className="text-base font-bold text-[hsl(var(--govuk-black))] mb-2">
+            🔒 Connected to Childminder Registration
           </p>
-          <p className="text-sm text-blue-900 dark:text-blue-300 mt-1">
+          <p className="text-sm text-[hsl(var(--govuk-text-secondary))] mb-1">
             {applicantName && (
               <>
-                <strong>{applicantName}</strong>
-                {applicantAddress && ` - ${applicantAddress.line1}, ${applicantAddress.town}`}
+                <strong className="text-[hsl(var(--govuk-black))]">{applicantName}</strong>
+                {applicantAddress && (
+                  <span className="ml-1">
+                    - {applicantAddress.line1}, {applicantAddress.town}
+                  </span>
+                )}
               </>
             )}
           </p>
           {memberName && (
-            <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+            <p className="text-sm text-[hsl(var(--govuk-black))] mt-2">
               This form is for: <strong>{memberName}</strong>
             </p>
           )}
         </div>
-        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-          Verified Link
+        <Badge className="bg-[hsl(var(--govuk-green))] text-white hover:bg-[hsl(var(--govuk-green-hover))] px-4 py-2 text-sm font-bold whitespace-nowrap">
+          ✓ Secure Link Verified
         </Badge>
       </div>
-      <p className="text-xs text-blue-800 dark:text-blue-300 mt-3">
-        This information is set by the childminder who added you to their application. If it is incorrect, you must ask them to cancel this request and send a new, correct invitation.
-      </p>
+      <div className="mt-4 pt-4 border-t border-[hsl(var(--govuk-grey-border))]">
+        <p className="text-xs text-[hsl(var(--govuk-text-secondary))]">
+          <strong>Important:</strong> This information is set by the childminder who added you to their application. 
+          If it is incorrect, you must ask them to cancel this request and send a new, correct invitation.
+        </p>
+      </div>
     </div>
   );
 }

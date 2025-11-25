@@ -5,9 +5,10 @@ import { GovUKTextarea } from "@/components/apply/GovUKTextarea";
 interface Props {
   formData: HouseholdFormData;
   setFormData: React.Dispatch<React.SetStateAction<HouseholdFormData>>;
+  validationErrors?: Record<string, string>;
 }
 
-export function HouseholdFormSection4({ formData, setFormData }: Props) {
+export function HouseholdFormSection4({ formData, setFormData, validationErrors = {} }: Props) {
   return (
     <div>
       <h2 className="text-3xl font-bold mb-6">4. Health Declaration</h2>
@@ -17,18 +18,19 @@ export function HouseholdFormSection4({ formData, setFormData }: Props) {
 
       <div className="space-y-8">
         <div>
-          <GovUKRadio
-            name="healthCondition"
-            legend="Do you have any current or previous medical conditions (physical or mental) that may impact your suitability to be in a home where childminding takes place?"
-            hint="This includes significant mental health conditions, neurological conditions, or physical impairments."
-            required
-            options={[
-              { value: "Yes", label: "Yes" },
-              { value: "No", label: "No" }
-            ]}
-            value={formData.healthCondition}
-            onChange={(value) => setFormData({ ...formData, healthCondition: value })}
-          />
+        <GovUKRadio
+          name="healthCondition"
+          legend="Do you have any current or previous medical conditions (physical or mental) that may impact your suitability to be in a home where childminding takes place?"
+          hint="This includes significant mental health conditions, neurological conditions, or physical impairments."
+          required
+          options={[
+            { value: "Yes", label: "Yes" },
+            { value: "No", label: "No" }
+          ]}
+          value={formData.healthCondition}
+          onChange={(value) => setFormData({ ...formData, healthCondition: value })}
+          error={validationErrors.healthCondition}
+        />
 
           {formData.healthCondition === "Yes" && (
             <div className="mt-4">
@@ -56,6 +58,7 @@ export function HouseholdFormSection4({ formData, setFormData }: Props) {
           ]}
           value={formData.smoker}
           onChange={(value) => setFormData({ ...formData, smoker: value })}
+          error={validationErrors.smoker}
         />
       </div>
     </div>

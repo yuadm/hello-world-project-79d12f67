@@ -2,13 +2,15 @@ import { HouseholdFormData } from "@/pages/HouseholdForm";
 import { GovUKInput } from "@/components/apply/GovUKInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
 
 interface Props {
   formData: HouseholdFormData;
   setFormData: React.Dispatch<React.SetStateAction<HouseholdFormData>>;
+  validationErrors?: Record<string, string>;
 }
 
-export function HouseholdFormSection5({ formData, setFormData }: Props) {
+export function HouseholdFormSection5({ formData, setFormData, validationErrors = {} }: Props) {
   return (
     <div>
       <h2 className="text-3xl font-bold mb-6">5. Declaration & Submission</h2>
@@ -17,6 +19,13 @@ export function HouseholdFormSection5({ formData, setFormData }: Props) {
       </p>
 
       <div className="space-y-6">
+        {(validationErrors.consentChecks || validationErrors.declarationTruth || validationErrors.declarationNotify) && (
+          <div className="flex items-center gap-2 text-[hsl(var(--govuk-red))] font-bold text-sm p-4 border-l-4 border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))]">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>You must check all three boxes to proceed</span>
+          </div>
+        )}
+
         <div className="flex items-start space-x-3">
           <Checkbox
             id="consentChecks"
@@ -24,6 +33,7 @@ export function HouseholdFormSection5({ formData, setFormData }: Props) {
             onCheckedChange={(checked) => 
               setFormData({ ...formData, consentChecks: checked as boolean })
             }
+            className={validationErrors.consentChecks ? "border-[hsl(var(--govuk-red))] border-2" : ""}
           />
           <Label htmlFor="consentChecks" className="text-base leading-relaxed cursor-pointer">
             I consent to Ready Kids carrying out all necessary checks, including with the DBS and local authorities, to assess my suitability.
@@ -37,6 +47,7 @@ export function HouseholdFormSection5({ formData, setFormData }: Props) {
             onCheckedChange={(checked) => 
               setFormData({ ...formData, declarationTruth: checked as boolean })
             }
+            className={validationErrors.declarationTruth ? "border-[hsl(var(--govuk-red))] border-2" : ""}
           />
           <Label htmlFor="declarationTruth" className="text-base leading-relaxed cursor-pointer">
             I declare that the information provided is true, accurate, and complete. I understand that providing false information is an offence and will result in refusal or cancellation of my suitability status.
@@ -50,6 +61,7 @@ export function HouseholdFormSection5({ formData, setFormData }: Props) {
             onCheckedChange={(checked) => 
               setFormData({ ...formData, declarationNotify: checked as boolean })
             }
+            className={validationErrors.declarationNotify ? "border-[hsl(var(--govuk-red))] border-2" : ""}
           />
           <Label htmlFor="declarationNotify" className="text-base leading-relaxed cursor-pointer">
             I understand I must notify the childminder of any changes to this information, including any new cautions or convictions.
@@ -65,6 +77,7 @@ export function HouseholdFormSection5({ formData, setFormData }: Props) {
           className="max-w-md"
           value={formData.signatureFullName}
           onChange={(e) => setFormData({ ...formData, signatureFullName: e.target.value })}
+          error={validationErrors.signatureFullName}
         />
 
         <GovUKInput

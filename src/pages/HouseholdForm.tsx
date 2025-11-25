@@ -68,6 +68,7 @@ export default function HouseholdForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [connectionInfo, setConnectionInfo] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState<HouseholdFormData>({
     title: "", firstName: "", middleNames: "", lastName: "",
@@ -174,6 +175,65 @@ export default function HouseholdForm() {
     }
   };
 
+  const validateSection = (section: number): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (section === 0) {
+      if (!formData.title) errors.title = "Select a title";
+      if (!formData.firstName.trim()) errors.firstName = "Enter your first name";
+      if (!formData.lastName.trim()) errors.lastName = "Enter your last name";
+      if (!formData.dob) errors.dob = "Enter your date of birth";
+      if (!formData.birthTown.trim()) errors.birthTown = "Enter your town of birth";
+      if (!formData.sex) errors.sex = "Select your sex";
+      if (!formData.niNumber.trim()) errors.niNumber = "Enter your National Insurance number";
+      else if (!/^[A-Z]{2}[0-9]{6}[A-D]$/.test(formData.niNumber.replace(/\s/g, ""))) {
+        errors.niNumber = "Enter a valid NI number format (e.g., QQ123456C)";
+      }
+    } else if (section === 1) {
+      if (!formData.homeAddressLine1.trim()) errors.homeAddressLine1 = "Enter address line 1";
+      if (!formData.homeTown.trim()) errors.homeTown = "Enter town or city";
+      if (!formData.homePostcode.trim()) errors.homePostcode = "Enter postcode";
+      if (!formData.homeMoveIn) errors.homeMoveIn = "Enter move in date";
+      if (!formData.livedOutsideUK) errors.livedOutsideUK = "Select yes or no";
+    } else if (section === 2) {
+      if (!formData.prevReg) errors.prevReg = "Select yes or no";
+      if (!formData.hasDBS) errors.hasDBS = "Select yes or no";
+      if (formData.hasDBS === "Yes" && !formData.dbsNumber.trim()) {
+        errors.dbsNumber = "Enter your DBS certificate number";
+      }
+      if (formData.hasDBS === "Yes" && formData.dbsNumber && !/^\d{12}$/.test(formData.dbsNumber)) {
+        errors.dbsNumber = "DBS certificate number must be 12 digits";
+      }
+      if (!formData.offenceHistory) errors.offenceHistory = "Select yes or no";
+      if (!formData.disqualified) errors.disqualified = "Select yes or no";
+      if (!formData.socialServices) errors.socialServices = "Select yes or no";
+    } else if (section === 3) {
+      if (!formData.healthCondition) errors.healthCondition = "Select yes or no";
+      if (!formData.smoker) errors.smoker = "Select yes or no";
+    } else if (section === 4) {
+      if (!formData.consentChecks) errors.consentChecks = "You must consent to checks";
+      if (!formData.declarationTruth) errors.declarationTruth = "You must confirm the information is true";
+      if (!formData.declarationNotify) errors.declarationNotify = "You must agree to notify of changes";
+      if (!formData.signatureFullName.trim()) errors.signatureFullName = "Enter your full name";
+    }
+
+    setValidationErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
+      toast.error("Please complete all required fields before continuing");
+      // Scroll to first error
+      setTimeout(() => {
+        const firstError = document.querySelector('[aria-invalid="true"]');
+        if (firstError) {
+          firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      return false;
+    }
+    
+    return true;
+  };
+
   const saveDraft = async () => {
     if (!token || !connectionInfo) return;
 
@@ -237,6 +297,11 @@ export default function HouseholdForm() {
   const handleSubmit = async () => {
     if (!token || !connectionInfo) return;
 
+    // Validate final section before submission
+    if (!validateSection(4)) {
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Save final submission
@@ -270,13 +335,27 @@ export default function HouseholdForm() {
     );
   }
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="min-h-screen bg-muted">
-      <header className="bg-primary text-primary-foreground border-b-8 border-white">
+      <header className="bg-primary text-primary-foreground border-b-8 border-white no-print">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-4">
-            <span className="text-2xl font-bold">Ready Kids</span>
-            <span className="text-lg border-l pl-4">Childminder Registration Service</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-2xl font-bold">Ready Kids</span>
+              <span className="text-lg border-l pl-4">Childminder Registration Service</span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrint}
+              className="bg-white text-primary hover:bg-gray-100"
+            >
+              🖨️ Print Form
+            </Button>
           </div>
         </div>
       </header>
@@ -297,30 +376,33 @@ export default function HouseholdForm() {
           <FormProgressBar currentSection={currentSection} totalSections={5} />
 
           {currentSection === 0 && (
-            <HouseholdFormSection1 formData={formData} setFormData={setFormData} />
+            <HouseholdFormSection1 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
           )}
           {currentSection === 1 && (
-            <HouseholdFormSection2 formData={formData} setFormData={setFormData} />
+            <HouseholdFormSection2 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
           )}
           {currentSection === 2 && (
-            <HouseholdFormSection3 formData={formData} setFormData={setFormData} />
+            <HouseholdFormSection3 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
           )}
           {currentSection === 3 && (
-            <HouseholdFormSection4 formData={formData} setFormData={setFormData} />
+            <HouseholdFormSection4 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
           )}
           {currentSection === 4 && (
-            <HouseholdFormSection5 formData={formData} setFormData={setFormData} />
+            <HouseholdFormSection5 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
           )}
 
-          <div className="mt-10 pt-6 border-t flex flex-wrap gap-4 justify-between items-center">
+          <div className="mt-10 pt-6 border-t flex flex-wrap gap-4 justify-between items-center no-print">
             <div className="flex gap-2">
               {currentSection > 0 && (
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setCurrentSection(currentSection - 1)}
+                  onClick={() => {
+                    setValidationErrors({});
+                    setCurrentSection(currentSection - 1);
+                  }}
                 >
-                  Back
+                  ← Back
                 </Button>
               )}
               
@@ -328,11 +410,14 @@ export default function HouseholdForm() {
                 <Button
                   type="button"
                   onClick={() => {
-                    saveDraft();
-                    setCurrentSection(currentSection + 1);
+                    if (validateSection(currentSection)) {
+                      saveDraft();
+                      setValidationErrors({});
+                      setCurrentSection(currentSection + 1);
+                    }
                   }}
                 >
-                  Save and continue
+                  Save and continue →
                 </Button>
               )}
 
@@ -341,8 +426,9 @@ export default function HouseholdForm() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={submitting}
+                  className="bg-[hsl(var(--govuk-green))] hover:bg-[hsl(var(--govuk-green-hover))] text-white font-bold"
                 >
-                  {submitting ? "Submitting..." : "Submit Form"}
+                  {submitting ? "Submitting..." : "✓ Submit Form"}
                 </Button>
               )}
             </div>
@@ -352,7 +438,7 @@ export default function HouseholdForm() {
               variant="outline"
               onClick={saveDraft}
             >
-              Save Draft
+              💾 Save Draft
             </Button>
           </div>
         </div>

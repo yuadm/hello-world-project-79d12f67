@@ -9,9 +9,10 @@ import { useEffect } from "react";
 interface Props {
   formData: HouseholdFormData;
   setFormData: React.Dispatch<React.SetStateAction<HouseholdFormData>>;
+  validationErrors?: Record<string, string>;
 }
 
-export function HouseholdFormSection2({ formData, setFormData }: Props) {
+export function HouseholdFormSection2({ formData, setFormData, validationErrors = {} }: Props) {
   const addAddressHistory = () => {
     setFormData(prev => ({
       ...prev,
@@ -205,6 +206,7 @@ export function HouseholdFormSection2({ formData, setFormData }: Props) {
           ]}
           value={formData.livedOutsideUK}
           onChange={(value) => setFormData({ ...formData, livedOutsideUK: value })}
+          error={validationErrors.livedOutsideUK}
         />
 
         {formData.livedOutsideUK === "Yes" && (
