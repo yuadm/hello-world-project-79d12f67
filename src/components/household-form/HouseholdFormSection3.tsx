@@ -8,9 +8,10 @@ import { AlertTriangle, Info } from "lucide-react";
 interface Props {
   formData: HouseholdFormData;
   setFormData: React.Dispatch<React.SetStateAction<HouseholdFormData>>;
+  validationErrors?: Record<string, string>;
 }
 
-export function HouseholdFormSection3({ formData, setFormData }: Props) {
+export function HouseholdFormSection3({ formData, setFormData, validationErrors = {} }: Props) {
   return (
     <div>
       <h2 className="text-3xl font-bold mb-6">3. Vetting & Suitability</h2>
@@ -77,10 +78,10 @@ export function HouseholdFormSection3({ formData, setFormData }: Props) {
                 label="DBS certificate number (12 digits)"
                 required
                 className="max-w-xs"
-                maxLength={12}
-                pattern="\d{12}"
+                validationType="dbs-certificate"
                 value={formData.dbsNumber}
-                onChange={(e) => setFormData({ ...formData, dbsNumber: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, dbsNumber: e.target.value.replace(/\D/g, "").slice(0, 12) })}
+                error={validationErrors.dbsNumber}
               />
 
               <GovUKRadio

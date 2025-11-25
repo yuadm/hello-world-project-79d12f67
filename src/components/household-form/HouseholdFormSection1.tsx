@@ -8,9 +8,10 @@ import { Plus, Trash2 } from "lucide-react";
 interface Props {
   formData: HouseholdFormData;
   setFormData: React.Dispatch<React.SetStateAction<HouseholdFormData>>;
+  validationErrors?: Record<string, string>;
 }
 
-export function HouseholdFormSection1({ formData, setFormData }: Props) {
+export function HouseholdFormSection1({ formData, setFormData, validationErrors = {} }: Props) {
   const addPreviousName = () => {
     setFormData(prev => ({
       ...prev,
@@ -193,8 +194,10 @@ export function HouseholdFormSection1({ formData, setFormData }: Props) {
           hint="It's on your National Insurance card, benefit letter, payslip or P60. For example, 'QQ 12 34 56 C'."
           required
           className="max-w-xs"
+          validationType="ni-number"
           value={formData.niNumber}
-          onChange={(e) => setFormData({ ...formData, niNumber: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, niNumber: e.target.value.toUpperCase().replace(/\s/g, "") })}
+          error={validationErrors.niNumber}
         />
       </div>
     </div>

@@ -8,15 +8,30 @@ export interface GovUKInputProps extends React.InputHTMLAttributes<HTMLInputElem
   error?: string;
   required?: boolean;
   widthClass?: "full" | "10" | "20";
+  validationType?: "ni-number" | "dbs-certificate" | "postcode";
 }
 
 export const GovUKInput = forwardRef<HTMLInputElement, GovUKInputProps>(
-  ({ label, hint, error, required, widthClass = "full", className, ...props }, ref) => {
+  ({ label, hint, error, required, widthClass = "full", className, validationType, ...props }, ref) => {
     const widthClasses = {
       full: "w-full",
       10: "max-w-[10rem]",
       20: "max-w-[20rem]",
     };
+
+    // Validation patterns based on type
+    const validationProps: any = {};
+    if (validationType === "ni-number") {
+      validationProps.pattern = "[A-Z]{2}[0-9]{6}[A-D]";
+      validationProps.maxLength = 9;
+      validationProps.placeholder = "QQ123456C";
+    } else if (validationType === "dbs-certificate") {
+      validationProps.pattern = "\\d{12}";
+      validationProps.maxLength = 12;
+      validationProps.placeholder = "000000000000";
+    } else if (validationType === "postcode") {
+      validationProps.maxLength = 8;
+    }
 
     return (
       <div className={cn("space-y-2", error && "border-l-[5px] border-[hsl(var(--govuk-red))] pl-4 py-2")}>
@@ -43,6 +58,7 @@ export const GovUKInput = forwardRef<HTMLInputElement, GovUKInputProps>(
           )}
           aria-invalid={error ? "true" : "false"}
           aria-describedby={error ? `${props.id || label}-error` : undefined}
+          {...validationProps}
           {...props}
         />
       </div>

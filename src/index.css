@@ -123,3 +123,27 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  header, nav, footer, button {
+    display: none !important;
+  }
+  
+  .print-show-all section {
+    display: block !important;
+  }
+  
+  @page {
+    margin: 1.5cm;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
