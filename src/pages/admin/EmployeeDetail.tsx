@@ -92,93 +92,98 @@ const AdminEmployeeDetail = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between mb-8">
+          <div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/admin/employees')}
+              className="mb-3 -ml-2 rounded-lg hover:bg-muted/50"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Employees
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold">
-                {employee.first_name} {employee.last_name}
-              </h1>
-              <p className="text-muted-foreground">{employee.email}</p>
-            </div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {employee.first_name} {employee.last_name}
+            </h1>
+            <p className="text-muted-foreground mt-1">{employee.email}</p>
           </div>
-          <Badge variant={getEmploymentStatusConfig(employee.employment_status).variant}>
+          <Badge 
+            variant={getEmploymentStatusConfig(employee.employment_status).variant}
+            className="px-4 py-2 rounded-full text-sm font-medium"
+          >
             {getEmploymentStatusConfig(employee.employment_status).label}
           </Badge>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card className="rounded-2xl border-0 shadow-apple-sm">
             <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
+              <CardTitle className="text-xl font-semibold tracking-tight">Personal Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm font-medium">Name:</p>
-                <p className="text-sm">{employee.first_name} {employee.last_name}</p>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <p className="text-sm font-medium text-muted-foreground">Name:</p>
+                <p className="text-sm font-medium">{employee.first_name} {employee.last_name}</p>
                 
-                <p className="text-sm font-medium">Email:</p>
+                <p className="text-sm font-medium text-muted-foreground">Email:</p>
                 <p className="text-sm">{employee.email}</p>
                 
-                <p className="text-sm font-medium">Phone:</p>
+                <p className="text-sm font-medium text-muted-foreground">Phone:</p>
                 <p className="text-sm">{employee.phone || "N/A"}</p>
                 
-                <p className="text-sm font-medium">Date of Birth:</p>
+                <p className="text-sm font-medium text-muted-foreground">Date of Birth:</p>
                 <p className="text-sm">
                   {employee.date_of_birth 
                     ? format(new Date(employee.date_of_birth), "MMM dd, yyyy")
                     : "N/A"}
                 </p>
                 
-                <p className="text-sm font-medium">NI Number:</p>
+                <p className="text-sm font-medium text-muted-foreground">NI Number:</p>
                 <p className="text-sm">{employee.ni_number || "N/A"}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-2xl border-0 shadow-apple-sm">
             <CardHeader>
-              <CardTitle>Employment Details</CardTitle>
+              <CardTitle className="text-xl font-semibold tracking-tight">Employment Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm font-medium">Start Date:</p>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <p className="text-sm font-medium text-muted-foreground">Start Date:</p>
                 <p className="text-sm">
                   {employee.employment_start_date
                     ? format(new Date(employee.employment_start_date), "MMM dd, yyyy")
                     : "N/A"}
                 </p>
                 
-                <p className="text-sm font-medium">Status:</p>
+                <p className="text-sm font-medium text-muted-foreground">Status:</p>
                 <div>
-                  <Badge variant={getEmploymentStatusConfig(employee.employment_status).variant}>
+                  <Badge 
+                    variant={getEmploymentStatusConfig(employee.employment_status).variant}
+                    className="rounded-full px-3 py-1"
+                  >
                     {getEmploymentStatusConfig(employee.employment_status).label}
                   </Badge>
                 </div>
                 
-                <p className="text-sm font-medium">Service Type:</p>
+                <p className="text-sm font-medium text-muted-foreground">Service Type:</p>
                 <p className="text-sm">{employee.service_type || "N/A"}</p>
                 
-                <p className="text-sm font-medium">Local Authority:</p>
+                <p className="text-sm font-medium text-muted-foreground">Local Authority:</p>
                 <p className="text-sm">{employee.local_authority || "N/A"}</p>
                 
-                <p className="text-sm font-medium">Max Capacity:</p>
+                <p className="text-sm font-medium text-muted-foreground">Max Capacity:</p>
                 <p className="text-sm">{employee.max_capacity || "N/A"}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
+        <Card className="rounded-2xl border-0 shadow-apple-sm">
           <CardHeader>
-            <CardTitle>DBS Compliance Tracking</CardTitle>
+            <CardTitle className="text-xl font-semibold tracking-tight">DBS Compliance Tracking</CardTitle>
             <CardDescription>
               Track and manage DBS checks for all household members
             </CardDescription>

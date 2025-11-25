@@ -75,40 +75,35 @@ const AdminDashboard = () => {
       value: metrics.totalApplications,
       icon: FileText,
       description: "All time applications",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      gradient: "from-blue-500 to-blue-600",
     },
     {
       title: "Pending Review",
       value: metrics.pendingApplications,
       icon: Clock,
       description: "Awaiting review",
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
+      gradient: "from-amber-500 to-amber-600",
     },
     {
       title: "Approved",
       value: metrics.approvedApplications,
       icon: CheckCircle,
       description: "Approved applications",
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      gradient: "from-emerald-500 to-emerald-600",
     },
     {
       title: "Rejected",
       value: metrics.rejectedApplications,
       icon: XCircle,
       description: "Rejected applications",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      gradient: "from-rose-500 to-rose-600",
     },
     {
       title: "Today's Applications",
       value: metrics.todayApplications,
       icon: Users,
       description: "Submitted today",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      gradient: "from-purple-500 to-purple-600",
     },
   ];
 
@@ -128,7 +123,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">Welcome back, Admin</h2>
+        <h2 className="text-3xl font-semibold tracking-tight mb-2">Welcome back, Admin</h2>
         <p className="text-muted-foreground">
           Here's an overview of childminder applications
         </p>
@@ -146,23 +141,26 @@ const AdminDashboard = () => {
 
       {/* Application Statistics */}
       <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-4">Application Statistics</h3>
+        <h3 className="text-xl font-semibold tracking-tight mb-4">Application Statistics</h3>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {metricCards.map((metric) => (
-          <Card key={metric.title} className="hover:shadow-lg transition-shadow">
+          <Card 
+            key={metric.title} 
+            className="group rounded-2xl border-0 bg-card shadow-apple-sm hover:shadow-apple-lg transition-all duration-300 hover:-translate-y-1"
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {metric.title}
               </CardTitle>
-              <div className={`p-2 rounded-full ${metric.bgColor}`}>
-                <metric.icon className={`h-4 w-4 ${metric.color}`} />
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${metric.gradient} flex items-center justify-center shadow-apple-sm`}>
+                <metric.icon className="h-6 w-6 text-white" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{metric.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <div className="text-4xl font-semibold tracking-tight">{metric.value}</div>
+              <p className="text-sm text-muted-foreground mt-1">
                 {metric.description}
               </p>
             </CardContent>

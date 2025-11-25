@@ -98,9 +98,9 @@ const AdminEmployees = () => {
 
   return (
     <AdminLayout>
-      <Card>
+      <Card className="rounded-2xl border-0 shadow-apple-sm">
         <CardHeader>
-          <CardTitle>Employees</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Employees</CardTitle>
           <CardDescription>
             View and manage all approved childminders
           </CardDescription>
@@ -113,14 +113,14 @@ const AdminEmployees = () => {
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 rounded-xl border-border/50 bg-muted/30 transition-all duration-200 focus:bg-background"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] rounded-xl border-border/50">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="on_leave">On Leave</SelectItem>
@@ -129,16 +129,16 @@ const AdminEmployees = () => {
             </Select>
           </div>
 
-          <div className="rounded-md border">
+          <div className="rounded-xl border border-border/50 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Service Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="font-semibold">Service Type</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Start Date</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -150,18 +150,24 @@ const AdminEmployees = () => {
                   </TableRow>
                 ) : (
                   filteredEmployees.map((emp) => (
-                    <TableRow key={emp.id}>
+                    <TableRow 
+                      key={emp.id}
+                      className="border-b border-border/50 hover:bg-muted/20 transition-colors duration-150"
+                    >
                       <TableCell className="font-medium">
                         {emp.first_name} {emp.last_name}
                       </TableCell>
-                      <TableCell>{emp.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{emp.email}</TableCell>
                       <TableCell>{emp.service_type || "N/A"}</TableCell>
                       <TableCell>
-                        <Badge variant={getEmploymentStatusConfig(emp.employment_status).variant}>
+                        <Badge 
+                          variant={getEmploymentStatusConfig(emp.employment_status).variant}
+                          className="rounded-full px-3 py-1"
+                        >
                           {getEmploymentStatusConfig(emp.employment_status).label}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-muted-foreground">
                         {emp.employment_start_date 
                           ? format(new Date(emp.employment_start_date), "MMM dd, yyyy")
                           : "N/A"}
@@ -171,6 +177,7 @@ const AdminEmployees = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => navigate(`/admin/employees/${emp.id}`)}
+                          className="rounded-lg hover:bg-muted/50 transition-all duration-150"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View

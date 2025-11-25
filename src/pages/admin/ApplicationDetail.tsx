@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { ArrowLeft, Edit, Save, X, ArrowRight, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { pdf } from '@react-pdf/renderer';
@@ -590,12 +591,16 @@ const ApplicationDetail = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive"> = {
-      pending: "secondary",
-      approved: "default",
-      rejected: "destructive",
+    const statusStyles: Record<string, string> = {
+      pending: "bg-amber-50 text-amber-700 border border-amber-200",
+      approved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      rejected: "bg-rose-50 text-rose-700 border border-rose-200",
     };
-    return <Badge variant={variants[status] || "secondary"}>{status}</Badge>;
+    return (
+      <Badge className={`rounded-full px-4 py-2 text-sm font-medium ${statusStyles[status] || statusStyles.pending}`}>
+        {status}
+      </Badge>
+    );
   };
 
   const renderSection = () => {
@@ -738,20 +743,32 @@ const ApplicationDetail = () => {
   
   return (
     <AdminLayout>
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-8 -mx-4 -my-8">
-        <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-          <Button variant="ghost" onClick={() => navigate('/admin/applications')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Applications
-          </Button>
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+          <div>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/admin/applications')}
+              className="mb-3 -ml-2 rounded-lg hover:bg-muted/50"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Applications
+            </Button>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {dbApplication.first_name} {dbApplication.last_name}
+            </h1>
+            <p className="text-muted-foreground mt-1">{dbApplication.email}</p>
+          </div>
           <div className="flex gap-2 items-center flex-wrap">
             {getStatusBadge(dbApplication.status)}
+            
             
             {existingEmployeeId && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate(`/admin/employees/${existingEmployeeId}`)}
+                className="rounded-xl"
               >
                 View Employee Record
               </Button>
@@ -762,10 +779,10 @@ const ApplicationDetail = () => {
               onValueChange={updateStatus} 
               disabled={updating || existingEmployeeId !== null}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] rounded-xl border-border/50">
                 <SelectValue placeholder="Change status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
@@ -778,30 +795,30 @@ const ApplicationDetail = () => {
               </p>
             )}
             
-            <Button onClick={() => setIsEditMode(true)} disabled={existingEmployeeId !== null}>
+            <Button 
+              onClick={() => setIsEditMode(true)} 
+              disabled={existingEmployeeId !== null}
+              className="rounded-xl"
+            >
               <Edit className="h-4 w-4 mr-2" />
               Edit Application
             </Button>
-            <Button onClick={handleDownloadPDF} variant="secondary">
+            <Button 
+              onClick={handleDownloadPDF} 
+              variant="secondary"
+              className="rounded-xl"
+            >
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
           </div>
         </div>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            {formData.title} {formData.firstName} {formData.middleNames} {formData.lastName}
-          </h1>
-          <p className="text-muted-foreground">
-            Submitted on {format(new Date(dbApplication.created_at), "MMMM dd, yyyy 'at' HH:mm")}
-          </p>
-        </div>
-
-        <div className="space-y-8">
+        <Card className="rounded-2xl border-0 shadow-apple-sm p-8">
+          <div className="space-y-8">
             {/* Section 1: Personal Details */}
             <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">1. Personal Details</h2>
+              <h2 className="text-2xl font-semibold tracking-tight mb-4">1. Personal Details</h2>
               <dl className="grid md:grid-cols-2 gap-4">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Title</dt>
@@ -1553,7 +1570,7 @@ const ApplicationDetail = () => {
               </dl>
             </section>
           </div>
-        </div>
+        </Card>
 
         <RequestApplicantDBSModal
           open={isApplicantDBSModalOpen}
@@ -1563,8 +1580,9 @@ const ApplicationDetail = () => {
           applicantEmail={dbApplication?.email || ""}
           onSuccess={fetchApplication}
         />
-      </AdminLayout>
-    );
-  };
+      </div>
+    </AdminLayout>
+  );
+};
 
   export default ApplicationDetail;

@@ -93,12 +93,16 @@ const AdminApplications = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive"> = {
-      pending: "secondary",
-      approved: "default",
-      rejected: "destructive",
+    const statusStyles: Record<string, string> = {
+      pending: "bg-amber-50 text-amber-700 border border-amber-200",
+      approved: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+      rejected: "bg-rose-50 text-rose-700 border border-rose-200",
     };
-    return <Badge variant={variants[status] || "secondary"}>{status}</Badge>;
+    return (
+      <Badge className={`rounded-full px-3 py-1 text-xs font-medium ${statusStyles[status] || statusStyles.pending}`}>
+        {status}
+      </Badge>
+    );
   };
 
   if (loading) {
@@ -116,9 +120,9 @@ const AdminApplications = () => {
 
   return (
     <AdminLayout>
-      <Card>
+      <Card className="rounded-2xl border-0 shadow-apple-sm">
         <CardHeader>
-          <CardTitle>Childminder Applications</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Childminder Applications</CardTitle>
           <CardDescription>
             View and manage all childminder applications
           </CardDescription>
@@ -131,14 +135,14 @@ const AdminApplications = () => {
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 rounded-xl border-border/50 bg-muted/30 transition-all duration-200 focus:bg-background"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] rounded-xl border-border/50">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-xl">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
@@ -147,16 +151,16 @@ const AdminApplications = () => {
             </Select>
           </div>
 
-          <div className="rounded-md border">
+          <div className="rounded-xl border border-border/50 overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Service Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="font-semibold">Name</TableHead>
+                  <TableHead className="font-semibold">Email</TableHead>
+                  <TableHead className="font-semibold">Service Type</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Submitted</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -168,14 +172,17 @@ const AdminApplications = () => {
                   </TableRow>
                 ) : (
                   filteredApps.map((app) => (
-                    <TableRow key={app.id}>
+                    <TableRow 
+                      key={app.id}
+                      className="border-b border-border/50 hover:bg-muted/20 transition-colors duration-150"
+                    >
                       <TableCell className="font-medium">
                         {app.first_name} {app.last_name}
                       </TableCell>
-                      <TableCell>{app.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{app.email}</TableCell>
                       <TableCell>{app.service_type || "N/A"}</TableCell>
                       <TableCell>{getStatusBadge(app.status)}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-muted-foreground">
                         {format(new Date(app.created_at), "MMM dd, yyyy")}
                       </TableCell>
                       <TableCell className="text-right">
@@ -183,6 +190,7 @@ const AdminApplications = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => navigate(`/admin/applications/${app.id}`)}
+                          className="rounded-lg hover:bg-muted/50 transition-all duration-150"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View

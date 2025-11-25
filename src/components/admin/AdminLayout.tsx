@@ -69,37 +69,41 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-apple-sm">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <h1 className="text-2xl font-bold">ChildMinderPro Admin</h1>
-              <nav className="flex gap-1">
+            <div className="flex items-center gap-12">
+              <h1 className="text-2xl font-semibold tracking-tight">ChildMinderPro</h1>
+              <nav className="flex gap-2">
                 <NavLink
                   to="/admin/dashboard"
-                  className="px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent"
-                  activeClassName="bg-accent text-accent-foreground"
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-muted/50"
+                  activeClassName="bg-primary text-primary-foreground shadow-apple-sm"
                 >
                   Dashboard
                 </NavLink>
                 <NavLink
                   to="/admin/applications"
-                  className="px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent"
-                  activeClassName="bg-accent text-accent-foreground"
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-muted/50"
+                  activeClassName="bg-primary text-primary-foreground shadow-apple-sm"
                 >
                   Applications
                 </NavLink>
                 <NavLink
                   to="/admin/employees"
-                  className="px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent"
-                  activeClassName="bg-accent text-accent-foreground"
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-muted/50"
+                  activeClassName="bg-primary text-primary-foreground shadow-apple-sm"
                 >
                   Employees
                 </NavLink>
               </nav>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="rounded-xl transition-all duration-200 hover:bg-muted/50"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
@@ -107,7 +111,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-8 animate-fade-up">
         {children}
       </main>
     </div>
