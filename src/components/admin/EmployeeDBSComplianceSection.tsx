@@ -371,13 +371,24 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
   });
 
   if (loading) {
-    return <div className="text-center py-8">Loading household members...</div>;
+    return (
+      <div className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
+        <div className="space-y-4">
+          <div className="h-6 w-48 bg-muted rounded-lg animate-shimmer" />
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-muted rounded-xl animate-shimmer" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const renderAdultsTable = () => (
-    <div className="border rounded-lg overflow-x-auto">
+    <div className="border border-border/50 rounded-xl overflow-x-auto shadow-apple-sm">
       <table className="w-full min-w-[1200px]">
-        <thead className="bg-muted">
+        <thead className="bg-muted/50">
           <tr>
             <th className="w-12 p-3">
               <Checkbox
@@ -393,15 +404,15 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
                 }}
               />
             </th>
-            <th className="text-left p-3 font-medium">Name</th>
-            <th className="text-left p-3 font-medium">Relationship</th>
-            <th className="text-left p-3 font-medium">DOB / Age</th>
-            <th className="text-left p-3 font-medium">Risk Level</th>
-            <th className="text-left p-3 font-medium">DBS Status</th>
-            <th className="text-left p-3 font-medium">Form Status</th>
-            <th className="text-left p-3 font-medium">Reminders</th>
-            <th className="text-left p-3 font-medium">Certificate #</th>
-            <th className="text-left p-3 font-medium">Actions</th>
+            <th className="text-left p-3 font-semibold text-sm">Name</th>
+            <th className="text-left p-3 font-semibold text-sm">Relationship</th>
+            <th className="text-left p-3 font-semibold text-sm">DOB / Age</th>
+            <th className="text-left p-3 font-semibold text-sm">Risk Level</th>
+            <th className="text-left p-3 font-semibold text-sm">DBS Status</th>
+            <th className="text-left p-3 font-semibold text-sm">Form Status</th>
+            <th className="text-left p-3 font-semibold text-sm">Reminders</th>
+            <th className="text-left p-3 font-semibold text-sm">Certificate #</th>
+            <th className="text-left p-3 font-semibold text-sm">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -413,7 +424,7 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
             return (
               <tr 
                 key={member.id} 
-                className={`border-t ${member.risk_level === 'critical' ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}
+                className={`border-t border-border/50 hover:bg-muted/20 transition-colors duration-150 ${member.risk_level === 'critical' ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}
               >
                 <td className="p-3">
                   <Checkbox

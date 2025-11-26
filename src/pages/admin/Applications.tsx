@@ -108,10 +108,26 @@ const AdminApplications = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading applications...</p>
+        <div className="mb-8">
+          <div className="h-8 w-64 bg-muted rounded-xl animate-shimmer mb-2" />
+          <div className="h-5 w-96 bg-muted rounded-lg animate-shimmer" />
+        </div>
+
+        <div className="rounded-2xl border-0 bg-card shadow-apple-sm overflow-hidden">
+          <div className="p-6 border-b border-border/50">
+            <div className="flex gap-4">
+              <div className="flex-1 h-10 bg-muted rounded-xl animate-shimmer" />
+              <div className="w-48 h-10 bg-muted rounded-xl animate-shimmer" />
+            </div>
+          </div>
+          <div className="divide-y divide-border/50">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="p-4 flex items-center gap-4">
+                <div className="flex-1 h-6 bg-muted rounded-lg animate-shimmer" />
+                <div className="w-32 h-6 bg-muted rounded-lg animate-shimmer" />
+                <div className="w-24 h-9 bg-muted rounded-lg animate-shimmer" />
+              </div>
+            ))}
           </div>
         </div>
       </AdminLayout>

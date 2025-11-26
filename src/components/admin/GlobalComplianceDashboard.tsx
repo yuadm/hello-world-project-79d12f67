@@ -132,9 +132,21 @@ export const GlobalComplianceDashboard = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">DBS Compliance Overview</h2>
-        <div className="text-center py-8 text-muted-foreground">Loading compliance data...</div>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold tracking-tight">DBS Compliance Overview</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
+              <div className="space-y-3">
+                <div className="h-4 w-24 bg-muted rounded-lg animate-shimmer" />
+                <div className="h-10 w-16 bg-muted rounded-lg animate-shimmer" />
+                <div className="h-3 w-32 bg-muted rounded-lg animate-shimmer" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -143,10 +155,10 @@ export const GlobalComplianceDashboard = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">DBS Compliance Overview</h2>
-          <p className="text-muted-foreground">Monitoring {metrics.totalMembers} employee household members requiring DBS checks</p>
+          <h2 className="text-xl font-semibold tracking-tight">DBS Compliance Overview</h2>
+          <p className="text-sm text-muted-foreground">Monitoring {metrics.totalMembers} employee household members requiring DBS checks</p>
         </div>
-        <Button onClick={() => navigate('/admin/employees')} variant="outline">
+        <Button onClick={() => navigate('/admin/employees')} variant="outline" className="rounded-lg">
           View All Employees
         </Button>
       </div>
@@ -185,37 +197,37 @@ export const GlobalComplianceDashboard = () => {
 
       {/* Secondary Metrics */}
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 p-4 rounded-lg">
+        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 p-4 rounded-xl shadow-apple-sm hover:shadow-apple-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="h-4 w-4 text-orange-600" />
             <span className="text-sm font-medium text-orange-900 dark:text-orange-100">Expiring Soon</span>
           </div>
-          <div className="text-2xl font-bold text-orange-900 dark:text-orange-100">{metrics.expiringSoonCount}</div>
+          <div className="text-3xl font-semibold tracking-tight text-orange-900 dark:text-orange-100">{metrics.expiringSoonCount}</div>
           <p className="text-xs text-orange-700 dark:text-orange-300">Certificates expiring in 90 days</p>
         </div>
         
-        <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 p-4 rounded-lg">
+        <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 p-4 rounded-xl shadow-apple-sm hover:shadow-apple-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-4 w-4 text-purple-600" />
             <span className="text-sm font-medium text-purple-900 dark:text-purple-100">Turning 16 Soon</span>
           </div>
-          <div className="text-2xl font-bold text-purple-900 dark:text-purple-100">{metrics.turning16SoonCount}</div>
+          <div className="text-3xl font-semibold tracking-tight text-purple-900 dark:text-purple-100">{metrics.turning16SoonCount}</div>
           <p className="text-xs text-purple-700 dark:text-purple-300">Children approaching 16 in 90 days</p>
         </div>
         
-        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
+        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-4 rounded-xl shadow-apple-sm hover:shadow-apple-md transition-all duration-200">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="h-4 w-4 text-blue-600" />
             <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Completion Rate</span>
           </div>
-          <div className="text-2xl font-bold text-blue-900 dark:text-blue-100">{metrics.completionRate}%</div>
+          <div className="text-3xl font-semibold tracking-tight text-blue-900 dark:text-blue-100">{metrics.completionRate}%</div>
           <p className="text-xs text-blue-700 dark:text-blue-300">Overall DBS completion rate</p>
         </div>
       </div>
 
       {/* Action Items */}
       {(metrics.criticalCount > 0 || metrics.atRiskCount > 0) && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 p-4 rounded">
+        <div className="bg-amber-50/50 dark:bg-amber-950/20 backdrop-blur-sm border-l-4 border-amber-500 p-4 rounded-xl shadow-apple-sm">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
@@ -231,7 +243,7 @@ export const GlobalComplianceDashboard = () => {
                 onClick={() => navigate('/admin/applications')} 
                 variant="outline" 
                 size="sm"
-                className="mt-3"
+                className="mt-3 rounded-lg"
               >
                 Review Applications
               </Button>
@@ -242,8 +254,8 @@ export const GlobalComplianceDashboard = () => {
 
       {/* Overdue DBS Requests */}
       {overdueMembers.length > 0 && (
-        <div className="border rounded-lg">
-          <div className="bg-muted p-4 border-b">
+        <div className="border border-border/50 rounded-2xl shadow-apple-sm overflow-hidden">
+          <div className="bg-muted/50 p-4 border-b border-border/50">
             <h3 className="font-semibold flex items-center gap-2">
               <Clock className="h-5 w-5 text-destructive" />
               Overdue DBS Requests ({overdueMembers.length})
@@ -252,9 +264,9 @@ export const GlobalComplianceDashboard = () => {
               Members with DBS requests overdue by 28+ days
             </p>
           </div>
-          <div className="divide-y">
+          <div className="divide-y divide-border/50">
             {overdueMembers.slice(0, 10).map((member) => (
-              <div key={member.member_id} className="p-4 hover:bg-muted/50 transition-colors">
+              <div key={member.member_id} className="p-4 hover:bg-muted/20 transition-colors duration-150">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">

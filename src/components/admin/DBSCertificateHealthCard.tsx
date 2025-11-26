@@ -144,28 +144,29 @@ export const DBSCertificateHealthCard = () => {
   ];
 
   if (loading) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-full bg-primary/10">
-              <FileText className="h-5 w-5 text-primary" />
+    return (
+      <Card className="rounded-2xl border-0 shadow-apple-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              DBS Certificate Health
             </div>
-            DBS Certificate Health
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/admin/employees')}
-          >
-            View All Employees
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </CardTitle>
-      </CardHeader>
+          </CardTitle>
+        </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">Loading certificate data...</div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-center py-8">
+              <div className="w-32 h-32 rounded-full bg-muted animate-shimmer" />
+            </div>
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-20 rounded-xl bg-muted animate-shimmer" />
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -173,11 +174,11 @@ export const DBSCertificateHealthCard = () => {
 
   if (metrics.total === 0) {
     return (
-      <Card>
+      <Card className="rounded-2xl border-0 shadow-apple-sm">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-full bg-primary/10">
+              <div className="p-2.5 rounded-xl bg-primary/10">
                 <FileText className="h-5 w-5 text-primary" />
               </div>
               DBS Certificate Health
@@ -185,6 +186,7 @@ export const DBSCertificateHealthCard = () => {
             <Button 
               variant="outline" 
               size="sm"
+              className="rounded-lg"
               onClick={() => navigate('/admin/employees')}
             >
               View Employees
@@ -199,7 +201,7 @@ export const DBSCertificateHealthCard = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="mt-4"
+              className="mt-4 rounded-lg"
               onClick={() => navigate('/admin/employees')}
             >
               Go to Employees
@@ -211,13 +213,13 @@ export const DBSCertificateHealthCard = () => {
   }
 
   return (
-    <Card>
+    <Card className="rounded-2xl border-0 shadow-apple-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <div className="p-2 rounded-full bg-primary/10">
+          <div className="p-2.5 rounded-xl bg-primary/10">
             <FileText className="h-5 w-5 text-primary" />
           </div>
-          DBS Certificate Health
+          <span className="text-xl font-semibold tracking-tight">DBS Certificate Health</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -257,7 +259,7 @@ export const DBSCertificateHealthCard = () => {
             {/* Valid */}
             <button
               onClick={() => navigate('/admin/employees')}
-              className="w-full bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-4 rounded-lg hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors text-left"
+              className="w-full bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 p-4 rounded-xl hover:bg-green-100 dark:hover:bg-green-950/30 hover:shadow-apple-sm transition-all duration-200 text-left"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -284,7 +286,7 @@ export const DBSCertificateHealthCard = () => {
             {/* Expiring */}
             <button
               onClick={() => navigate('/admin/employees')}
-              className="w-full bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-950/30 transition-colors text-left"
+              className="w-full bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-950/30 hover:shadow-apple-sm transition-all duration-200 text-left"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -311,7 +313,7 @@ export const DBSCertificateHealthCard = () => {
             {/* Expired */}
             <button
               onClick={() => navigate('/admin/employees')}
-              className="w-full bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-4 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors text-left"
+              className="w-full bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-4 rounded-xl hover:bg-red-100 dark:hover:bg-red-950/30 hover:shadow-apple-sm transition-all duration-200 text-left"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -338,7 +340,7 @@ export const DBSCertificateHealthCard = () => {
             {/* Missing/Not Requested */}
             <button
               onClick={() => navigate('/admin/employees')}
-              className="w-full bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 p-4 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-950/30 transition-colors text-left"
+              className="w-full bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 p-4 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-950/30 hover:shadow-apple-sm transition-all duration-200 text-left"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -383,8 +385,8 @@ export const DBSCertificateHealthCard = () => {
 
         {/* Action buttons */}
         {(metrics.expired.count > 0 || metrics.missing.count > 0) && (
-          <div className="mt-4 pt-4 border-t border-border">
-            <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4 rounded-lg">
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="bg-amber-50/50 dark:bg-amber-950/20 backdrop-blur-sm border border-amber-200/50 dark:border-amber-800/50 p-4 rounded-xl shadow-apple-sm">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
@@ -399,7 +401,7 @@ export const DBSCertificateHealthCard = () => {
                     onClick={() => navigate('/admin/employees')}
                     variant="outline"
                     size="sm"
-                    className="mt-3 border-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/40"
+                    className="mt-3 rounded-lg border-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/40"
                   >
                     Review & Take Action
                   </Button>

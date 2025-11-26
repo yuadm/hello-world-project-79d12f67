@@ -110,11 +110,32 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+        <div className="mb-8">
+          <div className="h-8 w-64 bg-muted rounded-xl animate-shimmer mb-2" />
+          <div className="h-5 w-96 bg-muted rounded-lg animate-shimmer" />
+        </div>
+
+        <div className="mb-8 space-y-4">
+          <div className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
+            <div className="flex items-center justify-center py-12">
+              <div className="w-40 h-40 rounded-full bg-muted animate-shimmer" />
+            </div>
           </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-32 bg-muted rounded-lg animate-shimmer" />
+                  <div className="w-12 h-12 rounded-xl bg-muted animate-shimmer" />
+                </div>
+                <div className="h-10 w-24 bg-muted rounded-lg animate-shimmer" />
+                <div className="h-4 w-40 bg-muted rounded-lg animate-shimmer" />
+              </div>
+            </div>
+          ))}
         </div>
       </AdminLayout>
     );

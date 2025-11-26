@@ -631,11 +631,28 @@ const ApplicationDetail = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading application...</p>
-          </div>
+        <div className="mb-8">
+          <div className="h-10 w-48 bg-muted rounded-lg animate-shimmer mb-4" />
+          <div className="h-9 w-96 bg-muted rounded-xl animate-shimmer mb-2" />
+          <div className="h-5 w-64 bg-muted rounded-lg animate-shimmer" />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-2xl border-0 bg-card shadow-apple-sm p-6">
+              <div className="space-y-4">
+                <div className="h-6 w-48 bg-muted rounded-lg animate-shimmer" />
+                <div className="space-y-3">
+                  {[...Array(4)].map((_, j) => (
+                    <div key={j} className="space-y-1">
+                      <div className="h-4 w-32 bg-muted rounded animate-shimmer" />
+                      <div className="h-5 w-full bg-muted rounded animate-shimmer" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </AdminLayout>
     );
