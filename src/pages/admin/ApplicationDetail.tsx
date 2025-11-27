@@ -1362,6 +1362,16 @@ const ApplicationDetail = () => {
               />
             </section>
 
+            {/* Section 7c: Assistant & Co-childminder Compliance */}
+            <section className="border-l-4 border-purple-500 pl-6 bg-purple-50/50 dark:bg-purple-950/20 p-6 rounded-r mt-8">
+              <h2 className="text-2xl font-bold mb-4">Assistant & Co-childminder Compliance</h2>
+              <AssistantComplianceSection
+                applicationId={id!}
+                applicantEmail={dbApplication?.email || ""}
+                applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
+              />
+            </section>
+
             {/* Section 8: Suitability */}
             <section className="border-l-4 border-primary pl-6">
               <h2 className="text-2xl font-bold mb-4">8. Suitability & Vetting</h2>

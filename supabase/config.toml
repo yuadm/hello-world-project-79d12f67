@@ -32,3 +32,12 @@ verify_jwt = false
 
 [functions.check-all-16th-birthdays]
 verify_jwt = false
+
+[functions.sync-assistants]
+verify_jwt = false
+
+[functions.send-assistant-form-email]
+verify_jwt = false
+
+[functions.submit-assistant-form]
+verify_jwt = false
