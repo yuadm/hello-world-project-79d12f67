@@ -5,53 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ApplicationData {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_mobile: string;
-  phone_home: string;
-  date_of_birth: string;
-  national_insurance_number: string;
-  current_address: {
-    line1: string;
-    line2?: string;
-    town: string;
-    county?: string;
-    postcode: string;
-  };
-  service_local_authority: string;
-  local_authority_other: string;
-  premises_address: {
-    type?: string;
-    postcode?: string;
-  };
-  service_age_range: any;
-  service_capacity: any;
-  service_type: string;
-  first_aid_qualification: string;
-  first_aid_expiry_date: string;
-  safeguarding_training: string;
-  safeguarding_completion_date: string;
-  eyfs_training: string;
-  eyfs_completion_date: string;
-  level_2_qualification: string;
-  level_2_completion_date: string;
-}
-
-interface HouseholdMember {
-  id: string;
-  full_name: string;
-  date_of_birth: string;
-  relationship: string;
-  email: string;
-  dbs_status: string;
-  dbs_certificate_number: string;
-  dbs_certificate_date: string;
-  dbs_certificate_expiry_date: string;
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -69,7 +22,7 @@ Deno.serve(async (req) => {
       throw new Error('Application ID is required');
     }
 
-    console.log('Starting approval process for application:', applicationId);
+    console.log('[approve-and-convert] Starting approval process for application:', applicationId);
 
     // Fetch application data
     const { data: application, error: appError } = await supabase
@@ -82,7 +35,7 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to fetch application: ${appError?.message}`);
     }
 
-    console.log('Application fetched:', application.first_name, application.last_name);
+    console.log('[approve-and-convert] Application fetched:', application.first_name, application.last_name);
 
     // Check if employee already exists for this application
     const { data: existingEmployee, error: checkError } = await supabase
@@ -92,7 +45,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existingEmployee) {
-      console.log('Employee already exists:', existingEmployee.id);
+      console.log('[approve-and-convert] Employee already exists:', existingEmployee.id);
       return new Response(
         JSON.stringify({
           success: true,
@@ -113,17 +66,6 @@ Deno.serve(async (req) => {
       const capacities = Object.values(serviceCapacity);
       return capacities.reduce((sum: number, val: any) => sum + (Number(val) || 0), 0);
     };
-
-    // Log application data being transferred
-    console.log('Application data being transferred:', {
-      phone_mobile: application.phone_mobile,
-      phone_home: application.phone_home,
-      ni_number: application.national_insurance_number,
-      current_address: application.current_address,
-      service_local_authority: application.service_local_authority,
-      service_capacity: application.service_capacity,
-      calculated_capacity: calculateTotalCapacity(application.service_capacity)
-    });
 
     // Create employee record
     const { data: employee, error: empError } = await supabase
@@ -166,134 +108,82 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to create employee: ${empError?.message}`);
     }
 
-    console.log('Employee created:', employee.id);
+    console.log('[approve-and-convert] Employee created:', employee.id);
 
-    // Fetch household members from application
-    const { data: householdMembers, error: membersError } = await supabase
-      .from('household_member_dbs_tracking')
-      .select('*')
-      .eq('application_id', applicationId);
+    // =============================================================================
+    // Transfer compliance data ownership from application to employee
+    // (Update polymorphic references instead of copying data)
+    // =============================================================================
 
-    if (membersError) {
-      console.error('Failed to fetch household members:', membersError.message);
-      // Don't throw - continue even if no household members
-    }
-
-    console.log('Household members fetched:', householdMembers?.length || 0);
-
-    // Copy household members to employee_household_members
-    if (householdMembers && householdMembers.length > 0) {
-      const employeeHouseholdMembers = await Promise.all(householdMembers.map(async (member: HouseholdMember) => {
-        // Calculate age to determine member_type
-        const dob = new Date(member.date_of_birth);
-        const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        const monthDiff = today.getMonth() - dob.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-          age--;
-        }
-
-        // Check if member has a completed form
-        const { data: formData } = await supabase
-          .from('household_member_forms')
-          .select('form_token')
-          .eq('member_id', member.id)
-          .eq('status', 'submitted')
-          .maybeSingle();
-
-        return {
-          employee_id: employee.id,
-          member_type: age >= 16 ? 'adult' : 'child',
-          full_name: member.full_name,
-          date_of_birth: member.date_of_birth,
-          relationship: member.relationship,
-          email: member.email,
-          dbs_status: (member.dbs_status === 'certificate_received' ? 'received' : member.dbs_status) as any || 'not_requested',
-          dbs_certificate_number: member.dbs_certificate_number,
-          dbs_certificate_date: member.dbs_certificate_date,
-          dbs_certificate_expiry_date: member.dbs_certificate_expiry_date,
-          form_token: formData?.form_token || null,
-          application_submitted: formData ? true : false,
-          response_received: formData ? true : false,
-        };
-      }));
-
-      const { error: insertMembersError } = await supabase
-        .from('employee_household_members')
-        .insert(employeeHouseholdMembers);
-
-      if (insertMembersError) {
-        throw new Error(`Failed to copy household members: ${insertMembersError.message}`);
-      }
-
-    console.log('Household members copied:', employeeHouseholdMembers.length);
-  }
-
-  // Fetch assistants from application
-  const { data: assistants, error: assistantsError } = await supabase
-    .from('assistant_dbs_tracking')
-    .select('*')
-    .eq('application_id', applicationId);
-
-  if (assistantsError) {
-    console.error('Failed to fetch assistants:', assistantsError.message);
-    // Don't throw - continue even if no assistants
-  }
-
-  console.log('Assistants fetched:', assistants?.length || 0);
-
-  // Copy assistants to employee_assistants
-  if (assistants && assistants.length > 0) {
-    const employeeAssistants = await Promise.all(assistants.map(async (assistant: any) => {
-      // Check if assistant has a completed form
-      const { data: formData } = await supabase
-        .from('assistant_forms')
-        .select('form_token')
-        .eq('assistant_id', assistant.id)
-        .eq('status', 'submitted')
-        .maybeSingle();
-
-      return {
+    // 1. Transfer household members from application to employee
+    const { data: householdMembers, error: updateMembersError } = await supabase
+      .from('compliance_household_members')
+      .update({
         employee_id: employee.id,
-        first_name: assistant.first_name,
-        last_name: assistant.last_name,
-        email: assistant.email,
-        phone: assistant.phone,
-        role: assistant.role,
-        date_of_birth: assistant.date_of_birth,
-        dbs_status: assistant.dbs_status || 'not_requested',
-        dbs_certificate_number: assistant.dbs_certificate_number,
-        dbs_certificate_date: assistant.dbs_certificate_date,
-        dbs_certificate_expiry_date: assistant.dbs_certificate_expiry_date,
-        dbs_request_date: assistant.dbs_request_date,
-        form_token: formData?.form_token || assistant.form_token || null,
-        form_status: assistant.form_status || 'not_sent',
-        form_sent_date: assistant.form_sent_date,
-        form_submitted_date: assistant.form_submitted_date || (formData ? new Date().toISOString() : null),
-        compliance_status: assistant.compliance_status || 'pending',
-        risk_level: assistant.risk_level || 'low',
-        notes: assistant.notes,
-        reminder_count: assistant.reminder_count || 0,
-        last_reminder_date: assistant.last_reminder_date,
-        reminder_history: assistant.reminder_history || [],
-        last_contact_date: assistant.last_contact_date,
-        follow_up_due_date: assistant.follow_up_due_date,
-        expiry_reminder_sent: assistant.expiry_reminder_sent || false,
-      };
-    }));
+        application_id: null,
+      })
+      .eq('application_id', applicationId)
+      .select('id, full_name');
 
-    const { error: insertAssistantsError } = await supabase
-      .from('employee_assistants')
-      .insert(employeeAssistants);
-
-    if (insertAssistantsError) {
-      throw new Error(`Failed to copy assistants: ${insertAssistantsError.message}`);
+    if (updateMembersError) {
+      console.error('[approve-and-convert] Failed to transfer household members:', updateMembersError.message);
+      throw new Error(`Failed to transfer household members: ${updateMembersError.message}`);
     }
 
-    console.log('Assistants copied:', employeeAssistants.length);
-  }
+    console.log('[approve-and-convert] Household members transferred:', householdMembers?.length || 0);
 
-  // Update application status to approved
+    // 2. Transfer assistants from application to employee
+    const { data: assistants, error: updateAssistantsError } = await supabase
+      .from('compliance_assistants')
+      .update({
+        employee_id: employee.id,
+        application_id: null,
+      })
+      .eq('application_id', applicationId)
+      .select('id, first_name, last_name');
+
+    if (updateAssistantsError) {
+      console.error('[approve-and-convert] Failed to transfer assistants:', updateAssistantsError.message);
+      throw new Error(`Failed to transfer assistants: ${updateAssistantsError.message}`);
+    }
+
+    console.log('[approve-and-convert] Assistants transferred:', assistants?.length || 0);
+
+    // 3. Transfer household member forms from application to employee
+    const { data: householdForms, error: updateFormsError } = await supabase
+      .from('compliance_household_forms')
+      .update({
+        employee_id: employee.id,
+        application_id: null,
+      })
+      .eq('application_id', applicationId)
+      .select('id');
+
+    if (updateFormsError) {
+      console.error('[approve-and-convert] Failed to transfer household forms:', updateFormsError.message);
+      // Don't throw - forms are optional
+    } else {
+      console.log('[approve-and-convert] Household forms transferred:', householdForms?.length || 0);
+    }
+
+    // 4. Transfer assistant forms from application to employee
+    const { data: assistantForms, error: updateAssistantFormsError } = await supabase
+      .from('compliance_assistant_forms')
+      .update({
+        employee_id: employee.id,
+        application_id: null,
+      })
+      .eq('application_id', applicationId)
+      .select('id');
+
+    if (updateAssistantFormsError) {
+      console.error('[approve-and-convert] Failed to transfer assistant forms:', updateAssistantFormsError.message);
+      // Don't throw - forms are optional
+    } else {
+      console.log('[approve-and-convert] Assistant forms transferred:', assistantForms?.length || 0);
+    }
+
+    // Update application status to approved
     const { error: updateError } = await supabase
       .from('childminder_applications')
       .update({ status: 'approved' })
@@ -303,7 +193,7 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to update application status: ${updateError.message}`);
     }
 
-    console.log('Application approved and converted to employee successfully');
+    console.log('[approve-and-convert] Application approved and converted to employee successfully');
 
     return new Response(
       JSON.stringify({
@@ -311,6 +201,7 @@ Deno.serve(async (req) => {
         employeeId: employee.id,
         householdMembersCount: householdMembers?.length || 0,
         assistantsCount: assistants?.length || 0,
+        message: 'Application approved and all compliance data transferred to employee record'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -318,7 +209,7 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error in approve-and-convert-to-employee:', error);
+    console.error('[approve-and-convert] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({
