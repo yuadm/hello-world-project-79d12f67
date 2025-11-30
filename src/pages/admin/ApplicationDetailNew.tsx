@@ -8,8 +8,8 @@ import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { ApplicationHero } from "@/components/admin/application-detail/ApplicationHero";
-import { HouseholdComplianceCard } from "@/components/admin/application-detail/HouseholdComplianceCard";
-import { AssistantComplianceCard } from "@/components/admin/application-detail/AssistantComplianceCard";
+import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
+import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
 import { PersonalInfoCard } from "@/components/admin/application-detail/PersonalInfoCard";
 import { ServiceDetailsCard } from "@/components/admin/application-detail/ServiceDetailsCard";
 import { AddressCard } from "@/components/admin/application-detail/AddressCard";
@@ -248,15 +248,17 @@ const ApplicationDetailNew = () => {
 
         {/* Compliance Management - Traffic Light Style */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <HouseholdComplianceCard
-            applicationId={id!}
-            applicantEmail={dbApplication.email}
-            applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+          <UnifiedHouseholdComplianceCard
+            parentId={id!}
+            parentType="application"
+            parentEmail={dbApplication.email}
+            parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
           />
-          <AssistantComplianceCard
-            applicationId={id!}
-            applicantEmail={dbApplication.email}
-            applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+          <UnifiedAssistantComplianceCard
+            parentId={id!}
+            parentType="application"
+            parentEmail={dbApplication.email}
+            parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
           />
         </div>
 
