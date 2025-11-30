@@ -8,25 +8,12 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { Employee, EmployeeHouseholdMember } from "@/types/employee";
-import { EmployeeDBSComplianceSection } from "@/components/admin/EmployeeDBSComplianceSection";
-import { EmployeeAssistantComplianceSection } from "@/components/admin/EmployeeAssistantComplianceSection";
+import { Employee } from "@/types/employee";
+import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
+import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
 import { 
-  calculateAge, 
-  daysUntil16thBirthday, 
   getEmploymentStatusConfig,
-  getDBSStatusConfig,
-  get16thBirthdayDate,
-  isTurning16Soon
 } from "@/lib/employeeHelpers";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 const AdminEmployeeDetail = () => {
@@ -35,7 +22,6 @@ const AdminEmployeeDetail = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
-  const [householdMembers, setHouseholdMembers] = useState<EmployeeHouseholdMember[]>([]);
 
   useEffect(() => {
     fetchEmployeeData();
@@ -52,16 +38,6 @@ const AdminEmployeeDetail = () => {
       if (empError) throw empError;
 
       setEmployee(empData as unknown as Employee);
-
-      const { data: membersData, error: membersError } = await supabase
-        .from('employee_household_members' as any)
-        .select('*')
-        .eq('employee_id', id)
-        .order('date_of_birth', { ascending: true });
-
-      if (membersError) throw membersError;
-
-      setHouseholdMembers((membersData || []) as unknown as EmployeeHouseholdMember[]);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -73,9 +49,6 @@ const AdminEmployeeDetail = () => {
       setLoading(false);
     }
   };
-
-  const adults = householdMembers.filter(m => m.member_type === 'adult');
-  const children = householdMembers.filter(m => m.member_type === 'child');
 
   if (loading || !employee) {
     return (
@@ -199,17 +172,20 @@ const AdminEmployeeDetail = () => {
           </Card>
         </div>
 
-        <EmployeeDBSComplianceSection
-          employeeId={id!}
-          employeeEmail={employee.email}
-          employeeName={`${employee.first_name} ${employee.last_name}`}
-        />
-
-        <EmployeeAssistantComplianceSection
-          employeeId={id!}
-          employeeEmail={employee.email}
-          employeeName={`${employee.first_name} ${employee.last_name}`}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <UnifiedHouseholdComplianceCard
+            parentId={id!}
+            parentType="employee"
+            parentEmail={employee.email}
+            parentName={`${employee.first_name} ${employee.last_name}`}
+          />
+          <UnifiedAssistantComplianceCard
+            parentId={id!}
+            parentType="employee"
+            parentEmail={employee.email}
+            parentName={`${employee.first_name} ${employee.last_name}`}
+          />
+        </div>
       </div>
     </AdminLayout>
   );
