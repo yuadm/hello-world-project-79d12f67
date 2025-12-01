@@ -116,7 +116,7 @@ export function EmployeeBatchDBSRequestModal({
 
         // Update member email and status in database
         const { error: updateError } = await supabase
-          .from("employee_household_members")
+          .from("compliance_household_members")
           .update({ 
             email: memberEmail as string,
             dbs_request_date: new Date().toISOString(),

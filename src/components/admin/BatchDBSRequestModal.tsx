@@ -116,7 +116,7 @@ export function BatchDBSRequestModal({
 
         // Update member email in database
         const { error: updateError } = await supabase
-          .from("household_member_dbs_tracking")
+          .from("compliance_household_members")
           .update({ email: memberEmail as string })
           .eq("id", member.id);
 

@@ -48,8 +48,9 @@ export const DBSCertificateHealthCard = () => {
 
       // Fetch ALL employee household members (this is what we track for compliance)
       const { data: employeeHousehold } = await supabase
-        .from('employee_household_members')
-        .select('id, member_type, date_of_birth, dbs_status, dbs_certificate_expiry_date, full_name');
+        .from('compliance_household_members')
+        .select('id, member_type, date_of_birth, dbs_status, dbs_certificate_expiry_date, full_name')
+        .not('employee_id', 'is', null);
 
       // Function to check if someone needs DBS
       const needsDBS = (memberType: string, dateOfBirth: string) => {

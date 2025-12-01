@@ -64,78 +64,61 @@ export default function AssistantForm() {
     try {
       console.log("[AssistantForm] Loading form data for token:", token);
 
-      // First, try to find the token in assistant_dbs_tracking (applicant flow)
-      const { data: applicantAssistant } = await supabase
-        .from("assistant_dbs_tracking")
+      // Try to find the token in compliance_assistants
+      const { data: assistant } = await supabase
+        .from("compliance_assistants")
         .select(`
           *,
-          childminder_applications!inner(
+          childminder_applications(
             id, first_name, last_name, current_address
-          )
-        `)
-        .eq("form_token", token)
-        .maybeSingle();
-
-      if (applicantAssistant) {
-        console.log("[AssistantForm] Found token in assistant_dbs_tracking (applicant flow)");
-        setAssistantSource("applicant");
-        
-        setConnectionInfo({
-          applicantName: `${applicantAssistant.childminder_applications.first_name} ${applicantAssistant.childminder_applications.last_name}`,
-          applicantAddress: applicantAssistant.childminder_applications.current_address,
-          assistantName: `${applicantAssistant.first_name} ${applicantAssistant.last_name}`,
-          assistantId: applicantAssistant.id,
-          applicationId: applicantAssistant.application_id,
-        });
-
-        // Load existing form from assistant_forms
-        await loadApplicantForm(token!);
-        setLoading(false);
-        return;
-      }
-
-      // If not found in applicant flow, try employee_assistants (employee flow)
-      console.log("[AssistantForm] Token not found in applicant flow, trying employee flow");
-      
-      const { data: employeeAssistant } = await supabase
-        .from("employee_assistants")
-        .select(`
-          *,
-          employees!inner(
+          ),
+          employees(
             id, first_name, last_name, address_line_1, address_line_2, town_city, postcode
           )
         `)
         .eq("form_token", token)
         .maybeSingle();
 
-      if (employeeAssistant) {
-        console.log("[AssistantForm] Found token in employee_assistants (employee flow)");
-        setAssistantSource("employee");
-        
-        const employeeAddress = {
-          line1: employeeAssistant.employees.address_line_1,
-          line2: employeeAssistant.employees.address_line_2,
-          town: employeeAssistant.employees.town_city,
-          postcode: employeeAssistant.employees.postcode,
-        };
-
-        setConnectionInfo({
-          applicantName: `${employeeAssistant.employees.first_name} ${employeeAssistant.employees.last_name}`,
-          applicantAddress: employeeAddress,
-          assistantName: `${employeeAssistant.first_name} ${employeeAssistant.last_name}`,
-          assistantId: employeeAssistant.id,
-          employeeId: employeeAssistant.employee_id,
+      if (!assistant) {
+        console.error("[AssistantForm] Invalid or expired form token");
+        toast({
+          title: "Invalid Form Link",
+          description: "This form link is invalid or has expired.",
+          variant: "destructive",
         });
-
-        // Load existing form from employee_assistant_forms
-        await loadEmployeeForm(token!);
         setLoading(false);
         return;
       }
 
-      // Token not found in either table
-      console.error("[AssistantForm] Token not found in either table");
-      throw new Error("Form token not found or expired");
+      console.log("[AssistantForm] Found assistant in unified table");
+      const isEmployee = !!assistant.employee_id;
+      setAssistantSource(isEmployee ? "employee" : "applicant");
+      
+      const parent = isEmployee ? assistant.employees : assistant.childminder_applications;
+      
+      let parentAddress;
+      if (isEmployee && parent) {
+        parentAddress = {
+          line1: (parent as any).address_line_1,
+          line2: (parent as any).address_line_2,
+          town: (parent as any).town_city,
+          postcode: (parent as any).postcode,
+        };
+      } else if (parent) {
+        parentAddress = (parent as any).current_address;
+      }
+
+      setConnectionInfo({
+        applicantName: `${parent?.first_name} ${parent?.last_name}`,
+        applicantAddress: parentAddress,
+        assistantName: `${assistant.first_name} ${assistant.last_name}`,
+        assistantId: assistant.id,
+        ...(isEmployee ? { employeeId: assistant.employee_id } : { applicationId: assistant.application_id }),
+      });
+
+      // Load existing form from unified compliance_assistant_forms table
+      await loadAssistantForm(token!);
+      setLoading(false);
 
     } catch (error: any) {
       console.error("[AssistantForm] Error loading form:", error);
@@ -144,22 +127,9 @@ export default function AssistantForm() {
     }
   };
 
-  const loadApplicantForm = async (formToken: string) => {
+  const loadAssistantForm = async (formToken: string) => {
     const { data: existingForm } = await supabase
-      .from("assistant_forms")
-      .select("*")
-      .eq("form_token", formToken)
-      .maybeSingle();
-
-    if (existingForm && existingForm.status !== "submitted") {
-      restoreFormData(existingForm);
-      toast.success("Draft form loaded");
-    }
-  };
-
-  const loadEmployeeForm = async (formToken: string) => {
-    const { data: existingForm } = await supabase
-      .from("employee_assistant_forms")
+      .from("compliance_assistant_forms")
       .select("*")
       .eq("form_token", formToken)
       .maybeSingle();
@@ -292,29 +262,19 @@ export default function AssistantForm() {
         signature_date: formData.signatureDate || null
       };
 
-      if (assistantSource === "employee") {
-        // Save to employee_assistant_forms
-        const { error } = await supabase
-          .from("employee_assistant_forms")
-          .upsert({
-            ...payload,
-            employee_assistant_id: connectionInfo.assistantId,
-            employee_id: connectionInfo.employeeId,
-          }, { onConflict: "form_token" });
+      // Save to unified compliance_assistant_forms table
+      const { error } = await supabase
+        .from("compliance_assistant_forms")
+        .upsert({
+          ...payload,
+          assistant_id: connectionInfo.assistantId,
+          ...(assistantSource === "employee" 
+            ? { employee_id: connectionInfo.employeeId } 
+            : { application_id: connectionInfo.applicationId }
+          ),
+        }, { onConflict: "form_token" });
 
-        if (error) throw error;
-      } else {
-        // Save to assistant_forms
-        const { error } = await supabase
-          .from("assistant_forms")
-          .upsert({
-            ...payload,
-            assistant_id: connectionInfo.assistantId,
-            application_id: connectionInfo.applicationId,
-          }, { onConflict: "form_token" });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       toast.success("Draft saved");
     } catch (error: any) {

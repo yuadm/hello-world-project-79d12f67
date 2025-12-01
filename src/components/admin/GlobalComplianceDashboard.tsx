@@ -55,24 +55,24 @@ export const GlobalComplianceDashboard = () => {
     try {
       const today = new Date();
       
-      // Fetch from all three tables for complete compliance picture
+      // Fetch from unified compliance tables
       const [
         { data: householdMembers, error: hmError },
-        { data: employeeHouseholdMembers, error: ehmError },
         { data: employees, error: empError }
       ] = await Promise.all([
-        supabase.from('household_member_dbs_tracking').select('*'),
-        supabase.from('employee_household_members').select('*'),
+        supabase.from('compliance_household_members').select('*'),
         supabase.from('employees').select('*').eq('employment_status', 'active')
       ]);
 
-      if (hmError || ehmError || empError) {
-        throw hmError || ehmError || empError;
+      if (hmError || empError) {
+        throw hmError || empError;
       }
 
-      // For DBS Certificate Health: Include all members who need DBS
-      // For Compliance Overview: Focus on employee household members only
-      const employeeHouseholdMembers16Plus = (employeeHouseholdMembers || []).filter(m => {
+      // Filter to only employee household members (not application members)
+      const employeeHouseholdMembers = (householdMembers || []).filter(m => m.employee_id);
+      
+      // For Compliance Overview: Focus on employee household members 16+ only
+      const employeeHouseholdMembers16Plus = employeeHouseholdMembers.filter(m => {
         const age = today.getFullYear() - new Date(m.date_of_birth).getFullYear();
         return m.member_type === 'adult' || age >= 16;
       });
