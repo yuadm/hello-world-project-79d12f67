@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -155,16 +155,16 @@ export const KnownToOfstedPDF = ({
             <Text style={styles.value}>{applicantName}</Text>
           </View>
 
-          {previousNames && previousNames.length > 0 && (
+          {previousNames && previousNames.length > 0 ? (
             <View style={styles.row}>
               <Text style={styles.label}>Previous surname(s):</Text>
               <View style={styles.value}>
                 {previousNames.map((prev, idx) => (
-                  <Text key={idx}>{prev.name} ({prev.dateFrom} to {prev.dateTo})</Text>
+                  <Text key={idx}>{prev.name || 'N/A'} ({prev.dateFrom || 'N/A'} to {prev.dateTo || 'N/A'})</Text>
                 ))}
               </View>
             </View>
-          )}
+          ) : null}
 
           <View style={styles.row}>
             <Text style={styles.label}>Date of birth:</Text>
@@ -182,21 +182,21 @@ export const KnownToOfstedPDF = ({
             </View>
           </View>
 
-          {previousAddresses && previousAddresses.length > 0 && (
+          {previousAddresses && previousAddresses.length > 0 ? (
             <View style={styles.row}>
               <Text style={styles.label}>Previous addresses (last 5 years):</Text>
               <View style={styles.value}>
                 {previousAddresses.map((addr, idx) => (
                   <View key={idx} style={styles.addressBox}>
-                    <Text>{addr.address}</Text>
+                    <Text>{addr.address || 'N/A'}</Text>
                     <Text style={{ fontSize: 9, marginTop: 3 }}>
-                      {addr.dateFrom} to {addr.dateTo}
+                      {addr.dateFrom || 'N/A'} to {addr.dateTo || 'N/A'}
                     </Text>
                   </View>
                 ))}
               </View>
             </View>
-          )}
+          ) : null}
 
           <View style={styles.row}>
             <Text style={styles.label}>Date of request to Ofsted:</Text>

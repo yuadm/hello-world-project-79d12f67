@@ -127,9 +127,10 @@ export const GenerateOfstedFormModal = ({
       setRequireChildInfo(false);
       setOfstedEmail("childminder.agencies@ofsted.gov.uk");
     } catch (error) {
+      console.error('PDF generation error:', error);
       toast({
         title: "Error",
-        description: "Failed to generate PDF",
+        description: error instanceof Error ? error.message : "Failed to generate PDF",
         variant: "destructive",
       });
     } finally {
