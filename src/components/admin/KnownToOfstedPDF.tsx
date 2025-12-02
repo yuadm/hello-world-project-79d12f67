@@ -108,6 +108,7 @@ interface KnownToOfstedPDFProps {
   requesterRole: string;
   requireChildInfo: boolean;
   agencyName?: string;
+  ofstedEmail?: string;
 }
 
 export const KnownToOfstedPDF = ({
@@ -122,6 +123,7 @@ export const KnownToOfstedPDF = ({
   requesterRole,
   requireChildInfo,
   agencyName = 'Childminder Agency',
+  ofstedEmail = 'childminder.agencies@ofsted.gov.uk',
 }: KnownToOfstedPDFProps) => {
   const roleLabels = {
     childminder: 'Childminder/Sole Proprietor',
@@ -276,7 +278,7 @@ export const KnownToOfstedPDF = ({
           <Text>Generated: {new Date().toLocaleDateString('en-GB')}</Text>
           <Text>Form version: May 2022</Text>
           <Text style={{ marginTop: 5 }}>
-            This form should be sent to: childminder.agencies@ofsted.gov.uk
+            This form should be sent to: {ofstedEmail}
           </Text>
         </View>
       </Page>
