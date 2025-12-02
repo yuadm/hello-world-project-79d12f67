@@ -57,6 +57,7 @@ export const GenerateOfstedFormModal = ({
   const [requesterName, setRequesterName] = useState("");
   const [requesterRole, setRequesterRole] = useState("");
   const [requireChildInfo, setRequireChildInfo] = useState(false);
+  const [ofstedEmail, setOfstedEmail] = useState("childminder.agencies@ofsted.gov.uk");
 
   const handleGenerate = async () => {
     if (!requesterName.trim() || !requesterRole.trim()) {
@@ -85,6 +86,7 @@ export const GenerateOfstedFormModal = ({
           requesterRole={requesterRole}
           requireChildInfo={requireChildInfo}
           agencyName={agencyName}
+          ofstedEmail={ofstedEmail}
         />
       ).toBlob();
 
@@ -104,6 +106,7 @@ export const GenerateOfstedFormModal = ({
       setRequesterName("");
       setRequesterRole("");
       setRequireChildInfo(false);
+      setOfstedEmail("childminder.agencies@ofsted.gov.uk");
     } catch (error) {
       toast({
         title: "Error",
@@ -164,6 +167,20 @@ export const GenerateOfstedFormModal = ({
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="ofstedEmail">Ofsted Email Address</Label>
+              <Input
+                id="ofstedEmail"
+                type="email"
+                value={ofstedEmail}
+                onChange={(e) => setOfstedEmail(e.target.value)}
+                placeholder="childminder.agencies@ofsted.gov.uk"
+              />
+              <p className="text-xs text-muted-foreground">
+                Default: childminder.agencies@ofsted.gov.uk
+              </p>
+            </div>
+
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
               <div className="space-y-0.5">
                 <Label htmlFor="childInfo" className="text-base">
@@ -187,7 +204,7 @@ export const GenerateOfstedFormModal = ({
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
               <li>Review the form preview above</li>
               <li>Click "Generate PDF" to download</li>
-              <li>Send the form to: childminder.agencies@ofsted.gov.uk</li>
+              <li>Send the form to: {ofstedEmail}</li>
               <li>Await Ofsted's response (typically 5-10 working days)</li>
             </ol>
           </div>
