@@ -46,16 +46,16 @@ const Childminders = () => {
       <Navigation />
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[55vh] flex items-center justify-center pt-20">
+        <section className="relative min-h-screen flex items-center justify-center pt-20">
           <div className="absolute inset-0 z-0">
-            <img src={serviceBlocksImage} alt="Childminder with children" className="w-full h-full object-cover" />
+            <img src={serviceBlocksImage} alt="Childminder with children" className="w-full h-full object-cover object-top" />
             <div className="absolute inset-0 bg-foreground/60" />
           </div>
           <div className="relative z-10 text-center text-primary-foreground px-4 max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold font-poppins mb-4">Become a ReadyKids Childminder</h1>
-            <p className="text-xl opacity-90 mb-8">Be your own boss, shape young futures and build a rewarding career in childcare.</p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-poppins mb-6">Become a ReadyKids Childminder</h1>
+            <p className="text-xl lg:text-2xl opacity-90 mb-10">Be your own boss, shape young futures and build a rewarding career in childcare.</p>
             <NavLink to="/apply">
-              <Button size="lg" variant="secondary">Start Your Application</Button>
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6">Start Your Application</Button>
             </NavLink>
           </div>
         </section>
