@@ -63,19 +63,19 @@ const Footer = () => {
             <h4 className="font-semibold font-poppins mb-4 text-foreground">For Families</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <NavLink to="/apply" className="text-muted-foreground hover:text-primary transition-colors">
+                <NavLink to="/parents" className="text-muted-foreground hover:text-primary transition-colors">
                   Find Childcare
                 </NavLink>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                  Funding & Guidance
-                </a>
+                <NavLink to="/services" className="text-muted-foreground hover:text-primary transition-colors">
+                  Our Services
+                </NavLink>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                  Parent Resources
-                </a>
+                <NavLink to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
+                  Contact Us
+                </NavLink>
               </li>
             </ul>
           </div>

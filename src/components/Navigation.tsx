@@ -2,24 +2,13 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "@/components/NavLink";
 import { Menu, X, LogIn } from "lucide-react";
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const Navigation = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
 
-  const scrollToSection = (sectionId: string) => {
-    if (location.pathname !== '/') {
-      navigate('/', { state: { scrollTo: sectionId } });
-    } else {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-    setMobileMenuOpen(false);
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -31,42 +20,42 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <button 
-              onClick={() => scrollToSection('home')}
-              className="text-foreground hover:text-primary transition-colors font-medium"
+            <NavLink 
+              to="/"
+              className={`font-medium transition-colors ${isActive('/') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
             >
               Home
-            </button>
-            <button 
-              onClick={() => scrollToSection('about')}
-              className="text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/about"
+              className={`font-medium transition-colors ${isActive('/about') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
             >
               About
-            </button>
-            <button 
-              onClick={() => scrollToSection('parents')}
-              className="text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/parents"
+              className={`font-medium transition-colors ${isActive('/parents') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
             >
               Parents
-            </button>
-            <button 
-              onClick={() => scrollToSection('childminders')}
-              className="text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/childminders"
+              className={`font-medium transition-colors ${isActive('/childminders') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
             >
               Childminders
-            </button>
-            <button 
-              onClick={() => scrollToSection('services')}
-              className="text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/services"
+              className={`font-medium transition-colors ${isActive('/services') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
             >
               Services
-            </button>
-            <button 
-              onClick={() => scrollToSection('contact')}
-              className="text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/contact"
+              className={`font-medium transition-colors ${isActive('/contact') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
             >
               Contact
-            </button>
+            </NavLink>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
@@ -76,7 +65,7 @@ const Navigation = () => {
                 Admin
               </Button>
             </NavLink>
-            <NavLink to="/apply">
+            <NavLink to="/parents">
               <Button variant="default">Find Childcare</Button>
             </NavLink>
           </div>
@@ -94,42 +83,48 @@ const Navigation = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden pt-4 pb-6 space-y-4">
-            <button 
-              onClick={() => scrollToSection('home')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            <NavLink 
+              to="/"
+              className={`block w-full text-left py-2 font-medium transition-colors ${isActive('/') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               Home
-            </button>
-            <button 
-              onClick={() => scrollToSection('about')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/about"
+              className={`block w-full text-left py-2 font-medium transition-colors ${isActive('/about') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               About
-            </button>
-            <button 
-              onClick={() => scrollToSection('parents')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/parents"
+              className={`block w-full text-left py-2 font-medium transition-colors ${isActive('/parents') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               Parents
-            </button>
-            <button 
-              onClick={() => scrollToSection('childminders')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/childminders"
+              className={`block w-full text-left py-2 font-medium transition-colors ${isActive('/childminders') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               Childminders
-            </button>
-            <button 
-              onClick={() => scrollToSection('services')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/services"
+              className={`block w-full text-left py-2 font-medium transition-colors ${isActive('/services') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               Services
-            </button>
-            <button 
-              onClick={() => scrollToSection('contact')}
-              className="block w-full text-left py-2 text-foreground hover:text-primary transition-colors font-medium"
+            </NavLink>
+            <NavLink 
+              to="/contact"
+              className={`block w-full text-left py-2 font-medium transition-colors ${isActive('/contact') ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               Contact
-            </button>
+            </NavLink>
             <div className="pt-4 space-y-3">
               <NavLink to="/admin" className="block" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start">
@@ -137,7 +132,7 @@ const Navigation = () => {
                   Admin Login
                 </Button>
               </NavLink>
-              <NavLink to="/apply" className="block" onClick={() => setMobileMenuOpen(false)}>
+              <NavLink to="/parents" className="block" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="default" className="w-full">Find Childcare</Button>
               </NavLink>
             </div>

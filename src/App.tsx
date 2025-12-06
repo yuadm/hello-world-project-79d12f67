@@ -10,6 +10,11 @@ import NotFound from "./pages/NotFound";
 import HouseholdForm from "./pages/HouseholdForm";
 import AssistantForm from "./pages/AssistantForm";
 import ReferenceForm from "./pages/ReferenceForm";
+import About from "./pages/About";
+import Parents from "./pages/Parents";
+import Childminders from "./pages/Childminders";
+import Services from "./pages/Services";
+import Contact from "./pages/Contact";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminApplications from "./pages/admin/Applications";
@@ -27,6 +32,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/parents" element={<Parents />} />
+          <Route path="/childminders" element={<Childminders />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/join" element={<Join />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/household-form" element={<HouseholdForm />} />
@@ -39,11 +49,6 @@ const App = () => (
           <Route path="/admin/applications/:id" element={<AdminApplicationDetail />} />
           <Route path="/admin/employees" element={<AdminEmployees />} />
           <Route path="/admin/employees/:id" element={<AdminEmployeeDetail />} />
-          {/* Placeholder routes for navigation links */}
-          <Route path="/features" element={<Index />} />
-          <Route path="/pricing" element={<Index />} />
-          <Route path="/about" element={<Index />} />
-          <Route path="/contact" element={<Index />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
