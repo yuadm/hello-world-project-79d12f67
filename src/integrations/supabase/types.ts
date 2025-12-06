@@ -978,6 +978,84 @@ export type Database = {
           },
         ]
       }
+      ofsted_form_submissions: {
+        Row: {
+          applicant_name: string
+          application_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          employee_id: string | null
+          form_token: string
+          id: string
+          ofsted_email: string
+          reference_id: string
+          requester_name: string
+          requester_role: string
+          require_child_info: boolean | null
+          response_data: Json | null
+          role: string
+          sent_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          applicant_name: string
+          application_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          employee_id?: string | null
+          form_token: string
+          id?: string
+          ofsted_email: string
+          reference_id: string
+          requester_name: string
+          requester_role: string
+          require_child_info?: boolean | null
+          response_data?: Json | null
+          role: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          applicant_name?: string
+          application_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          employee_id?: string | null
+          form_token?: string
+          id?: string
+          ofsted_email?: string
+          reference_id?: string
+          requester_name?: string
+          requester_role?: string
+          require_child_info?: boolean | null
+          response_data?: Json | null
+          role?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ofsted_form_submissions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "childminder_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ofsted_form_submissions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reference_requests: {
         Row: {
           application_id: string | null

@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, FileCheck, FileText } from "lucide-react";
+import { ArrowLeft, FileCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";
-import { SendOfstedFormModal } from "@/components/admin/SendOfstedFormModal";
+import { KnownToOfstedCard } from "@/components/admin/KnownToOfstedCard";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { ApplicationHero } from "@/components/admin/application-detail/ApplicationHero";
 import { AdminApplicationEditForm } from "@/components/admin/AdminApplicationEditForm";
@@ -109,7 +109,6 @@ const ApplicationDetailNew = () => {
   const [dbApplication, setDbApplication] = useState<DBApplication | null>(null);
   const [existingEmployeeId, setExistingEmployeeId] = useState<string | null>(null);
   const [showDBSRequestModal, setShowDBSRequestModal] = useState(false);
-  const [showOfstedModal, setShowOfstedModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -292,15 +291,6 @@ const ApplicationDetailNew = () => {
             onViewEmployee={() => navigate(`/admin/employees/${existingEmployeeId}`)}
             onEdit={() => setIsEditing(true)}
           />
-          
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setShowOfstedModal(true)}
-          >
-            <FileText className="h-4 w-4" />
-            Send Known to Ofsted Form
-          </Button>
         </div>
 
         {/* Edit Mode or View Mode */}
@@ -465,21 +455,11 @@ const ApplicationDetailNew = () => {
             />
           </div>
         )}
-        </>
-        )}
 
-        <RequestApplicantDBSModal
-          open={showDBSRequestModal}
-          onOpenChange={setShowDBSRequestModal}
-          applicationId={id!}
-          applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
-          applicantEmail={dbApplication.email}
-          onSuccess={fetchApplication}
-        />
-
-        <SendOfstedFormModal
-          open={showOfstedModal}
-          onOpenChange={setShowOfstedModal}
+        {/* Known to Ofsted Bento Card */}
+        <KnownToOfstedCard
+          parentId={id!}
+          parentType="application"
           applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
           dateOfBirth={dbApplication.date_of_birth}
           currentAddress={{
@@ -500,8 +480,17 @@ const ApplicationDetailNew = () => {
             dateTo: prev.dateTo || '',
           }))}
           role="childminder"
-          parentId={id}
-          parentType="application"
+        />
+        </>
+        )}
+
+        <RequestApplicantDBSModal
+          open={showDBSRequestModal}
+          onOpenChange={setShowDBSRequestModal}
+          applicationId={id!}
+          applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+          applicantEmail={dbApplication.email}
+          onSuccess={fetchApplication}
         />
       </div>
     </AdminLayout>

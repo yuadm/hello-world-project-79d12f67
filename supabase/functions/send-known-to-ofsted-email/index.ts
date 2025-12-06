@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const brevoApiKey = Deno.env.get("BREVO_API_KEY");
 const brevoSenderEmail = Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@readykids.co.uk";
@@ -50,11 +51,18 @@ const handler = async (req: Request): Promise<Response> => {
       ofstedEmail: data.ofstedEmail,
       applicantName: data.applicantName,
       role: data.role,
+      parentId: data.parentId,
+      parentType: data.parentType,
     });
 
     if (!brevoApiKey) {
       throw new Error("BREVO_API_KEY is not configured");
     }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Generate a unique token for this form
     const formToken = crypto.randomUUID();
@@ -65,7 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
     const referenceId = `RK-${year}-${seq}`;
 
     // Build the form URL with query parameters
-    const baseUrl = Deno.env.get("SITE_URL") || "https://readykids.lovable.app";
+    const baseUrl = "https://readykids.lovable.app";
     const formUrl = new URL(`${baseUrl}/ofsted-form`);
     
     // Encode form data as URL parameters
@@ -81,6 +89,38 @@ const handler = async (req: Request): Promise<Response> => {
     formUrl.searchParams.set("requesterRole", data.requesterRole);
     formUrl.searchParams.set("childInfo", data.requireChildInfo ? "yes" : "no");
     formUrl.searchParams.set("agency", data.agencyName);
+
+    // Save to database
+    const submissionData: Record<string, unknown> = {
+      form_token: formToken,
+      reference_id: referenceId,
+      applicant_name: data.applicantName,
+      date_of_birth: data.dateOfBirth || null,
+      role: data.role,
+      ofsted_email: data.ofstedEmail,
+      requester_name: data.requesterName,
+      requester_role: data.requesterRole,
+      require_child_info: data.requireChildInfo,
+      status: 'pending',
+      sent_at: new Date().toISOString(),
+    };
+
+    if (data.parentType === 'application' && data.parentId) {
+      submissionData.application_id = data.parentId;
+    } else if (data.parentType === 'employee' && data.parentId) {
+      submissionData.employee_id = data.parentId;
+    }
+
+    const { error: insertError } = await supabase
+      .from('ofsted_form_submissions')
+      .insert(submissionData);
+
+    if (insertError) {
+      console.error("Error saving submission:", insertError);
+      // Don't throw - we still want to send the email
+    } else {
+      console.log("Submission saved to database:", referenceId);
+    }
 
     const formatDate = (dateStr: string) => {
       if (!dateStr) return 'N/A';
@@ -212,10 +252,11 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in send-known-to-ofsted-email:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

@@ -13,6 +13,7 @@ import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/Unifi
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
 import { ReferencesCard } from "@/components/admin/application-detail/ReferencesCard";
 import { EmployeeDBSCard } from "@/components/admin/employee-detail/EmployeeDBSCard";
+import { KnownToOfstedCard } from "@/components/admin/KnownToOfstedCard";
 import { RequestEmployeeDBSModal } from "@/components/admin/RequestEmployeeDBSModal";
 import { 
   getEmploymentStatusConfig,
@@ -210,6 +211,22 @@ const AdminEmployeeDetail = () => {
             reference2Childcare={(employee.applicant_references as ApplicantReferences)?.reference2?.childcare ? "Yes" : "No"}
           />
         </div>
+
+        {/* Known to Ofsted Bento Card */}
+        <KnownToOfstedCard
+          parentId={id!}
+          parentType="employee"
+          applicantName={`${employee.first_name} ${employee.last_name}`}
+          dateOfBirth={employee.date_of_birth || ''}
+          currentAddress={{
+            line1: employee.address_line_1 || '',
+            line2: employee.address_line_2 || '',
+            town: employee.town_city || '',
+            postcode: employee.postcode || '',
+            moveInDate: '',
+          }}
+          role="childminder"
+        />
 
         <RequestEmployeeDBSModal
           open={dbsModalOpen}
