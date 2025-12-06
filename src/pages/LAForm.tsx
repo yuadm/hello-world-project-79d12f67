@@ -17,8 +17,15 @@ interface Address {
   moveInDate: string;
 }
 
+interface PreviousAddressObject {
+  line1: string;
+  line2?: string;
+  town: string;
+  postcode: string;
+}
+
 interface PreviousAddress {
-  address: string;
+  address: string | PreviousAddressObject;
   dateFrom: string;
   dateTo: string;
 }
@@ -29,13 +36,27 @@ interface PreviousName {
   dateTo: string;
 }
 
+// Helper to format previous address (handles both string and object formats)
+const formatPreviousAddress = (addr: PreviousAddress): string => {
+  if (typeof addr.address === 'string') {
+    return addr.address;
+  }
+  const parts = [
+    addr.address.line1,
+    addr.address.line2,
+    addr.address.town,
+    addr.address.postcode
+  ].filter(Boolean);
+  return parts.join(', ');
+};
+
 const LAForm = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Parse URL parameters
+  // Parse URL parameters with error handling
   const token = searchParams.get("token") || "";
   const referenceId = searchParams.get("ref") || "";
   const applicantName = searchParams.get("name") || "";
@@ -46,9 +67,27 @@ const LAForm = () => {
   const requesterRole = searchParams.get("requesterRole") || "";
   const agencyName = searchParams.get("agency") || "ReadyKids Childminder Agency";
 
-  const currentAddress: Address = JSON.parse(searchParams.get("address") || "{}");
-  const previousAddresses: PreviousAddress[] = JSON.parse(searchParams.get("prevAddresses") || "[]");
-  const previousNames: PreviousName[] = JSON.parse(searchParams.get("prevNames") || "[]");
+  let currentAddress: Address = { line1: '', town: '', postcode: '', moveInDate: '' };
+  let previousAddresses: PreviousAddress[] = [];
+  let previousNames: PreviousName[] = [];
+  
+  try {
+    currentAddress = JSON.parse(searchParams.get("address") || "{}");
+  } catch (e) {
+    console.error("Failed to parse address:", e);
+  }
+  
+  try {
+    previousAddresses = JSON.parse(searchParams.get("prevAddresses") || "[]");
+  } catch (e) {
+    console.error("Failed to parse prevAddresses:", e);
+  }
+  
+  try {
+    previousNames = JSON.parse(searchParams.get("prevNames") || "[]");
+  } catch (e) {
+    console.error("Failed to parse prevNames:", e);
+  }
 
   // Form state
   const [responseType, setResponseType] = useState<string>("");
@@ -252,7 +291,7 @@ const LAForm = () => {
                   <Label className="text-sm text-gray-600">Previous Addresses (Last 5 Years)</Label>
                   {previousAddresses.map((addr, idx) => (
                     <div key={idx} className="bg-gray-50 p-3 rounded-lg mt-2 text-sm">
-                      <p>{addr.address}</p>
+                      <p>{formatPreviousAddress(addr)}</p>
                       <p className="text-gray-500">From: {formatMonthYear(addr.dateFrom)} To: {formatMonthYear(addr.dateTo)}</p>
                     </div>
                   ))}
