@@ -279,26 +279,28 @@ const OfstedForm = () => {
               </div>
 
               <div>
-                <Label className="text-sm text-gray-600">Full address</Label>
-                <Textarea 
-                  value={`${currentAddress.line1 || ""}\n${currentAddress.line2 || ""}\n${currentAddress.town || ""}\n${currentAddress.postcode || ""}\nDate from: ${formatDisplayDate(currentAddress.moveInDate)}`}
-                  readOnly 
-                  className="bg-gray-50 mt-1" 
-                  rows={4}
-                />
-              </div>
+                <Label className="text-sm text-gray-600">Full address (last 5 years)</Label>
+                <div className="bg-gray-50 border border-input rounded-md p-3 mt-1 space-y-4">
+                  {/* Current Address */}
+                  <div className="text-sm">
+                    <p className="font-medium text-gray-700 mb-1">Current Address:</p>
+                    <p>{currentAddress.line1 || ""}</p>
+                    {currentAddress.line2 && <p>{currentAddress.line2}</p>}
+                    <p>{currentAddress.town || ""}</p>
+                    <p>{currentAddress.postcode || ""}</p>
+                    <p className="text-gray-500 mt-1">Date from: {formatDisplayDate(currentAddress.moveInDate)}</p>
+                  </div>
 
-              {previousAddresses.length > 0 && (
-                <div>
-                  <Label className="text-sm text-gray-600">Previous address(es)</Label>
-                  {previousAddresses.map((addr, idx) => (
-                    <div key={idx} className="bg-gray-50 p-3 rounded-lg mt-2 text-sm">
+                  {/* Previous Addresses */}
+                  {previousAddresses.length > 0 && previousAddresses.map((addr, idx) => (
+                    <div key={idx} className="text-sm border-t border-gray-200 pt-3">
+                      <p className="font-medium text-gray-700 mb-1">Previous Address {idx + 1}:</p>
                       <p>{addr.address}</p>
-                      <p className="text-gray-500">From: {formatDisplayDate(addr.dateFrom)} To: {formatDisplayDate(addr.dateTo)}</p>
+                      <p className="text-gray-500 mt-1">From: {formatDisplayDate(addr.dateFrom)} To: {formatDisplayDate(addr.dateTo)}</p>
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
 
               <div>
                 <Label className="text-sm text-gray-600">Applicant's role</Label>
