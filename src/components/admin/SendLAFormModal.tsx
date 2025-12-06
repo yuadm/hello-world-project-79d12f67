@@ -11,7 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, Building2, ExternalLink } from "lucide-react";
+import { Mail, Building2, ExternalLink, MapPin } from "lucide-react";
+
+interface AddressWithLA {
+  address: string;
+  dateFrom: string;
+  dateTo: string;
+  localAuthority: string;
+  isCurrent: boolean;
+  postcode: string;
+}
 
 interface SendLAFormModalProps {
   open: boolean;
@@ -41,6 +50,8 @@ interface SendLAFormModalProps {
   parentId?: string;
   parentType?: 'application' | 'employee';
   onSuccess?: () => void;
+  // New prop for filtered addresses
+  targetAddresses?: AddressWithLA[];
 }
 
 export const SendLAFormModal = ({
@@ -57,12 +68,42 @@ export const SendLAFormModal = ({
   parentId,
   parentType,
   onSuccess,
+  targetAddresses,
 }: SendLAFormModalProps) => {
   const { toast } = useToast();
   const [sending, setSending] = useState(false);
   const [laEmail, setLaEmail] = useState("");
   const [requesterName, setRequesterName] = useState("");
   const [requesterRole, setRequesterRole] = useState("");
+
+  // Determine which addresses to send
+  const hasTargetAddresses = targetAddresses && targetAddresses.length > 0;
+  
+  // Build the address data to send based on target addresses
+  const buildAddressDataForEmail = () => {
+    if (!hasTargetAddresses) {
+      // Fallback to original behavior - send all addresses
+      return {
+        currentAddress,
+        previousAddresses,
+      };
+    }
+
+    // Filter addresses to only include those in targetAddresses
+    const currentTargetAddress = targetAddresses.find(a => a.isCurrent);
+    const previousTargetAddresses = targetAddresses.filter(a => !a.isCurrent);
+
+    return {
+      currentAddress: currentTargetAddress ? currentAddress : undefined,
+      previousAddresses: previousTargetAddresses.length > 0 
+        ? previousTargetAddresses.map(a => ({
+            address: a.address,
+            dateFrom: a.dateFrom,
+            dateTo: a.dateTo,
+          }))
+        : undefined,
+    };
+  };
 
   const handleSend = async () => {
     if (!requesterName.trim() || !requesterRole.trim()) {
@@ -86,7 +127,7 @@ export const SendLAFormModal = ({
     if (!localAuthority) {
       toast({
         title: "Missing Local Authority",
-        description: "Local Authority is not set for this application",
+        description: "Local Authority is not set for this request",
         variant: "destructive",
       });
       return;
@@ -94,13 +135,15 @@ export const SendLAFormModal = ({
 
     setSending(true);
     try {
+      const addressData = buildAddressDataForEmail();
+
       const { data, error } = await supabase.functions.invoke('send-la-check-email', {
         body: {
           laEmail,
           applicantName,
           dateOfBirth,
-          currentAddress,
-          previousAddresses,
+          currentAddress: addressData.currentAddress,
+          previousAddresses: addressData.previousAddresses,
           previousNames,
           role,
           localAuthority,
@@ -116,7 +159,7 @@ export const SendLAFormModal = ({
 
       toast({
         title: "Email Sent",
-        description: `LA check request sent to ${laEmail}`,
+        description: `LA check request sent to ${localAuthority}`,
       });
 
       onOpenChange(false);
@@ -179,6 +222,33 @@ export const SendLAFormModal = ({
               </p>
             )}
           </div>
+
+          {/* Addresses to be included */}
+          {hasTargetAddresses && (
+            <div className="rounded-lg border border-border p-3 bg-muted/30">
+              <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Addresses Included in Request
+              </h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                Only addresses within {localAuthority} jurisdiction will be sent.
+              </p>
+              <div className="space-y-2">
+                {targetAddresses.map((addr, idx) => (
+                  <div key={idx} className="text-sm p-2 rounded bg-background border border-border/50">
+                    <p className="font-medium truncate">{addr.address}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {addr.isCurrent ? (
+                        <span className="text-green-600 dark:text-green-400">Current address</span>
+                      ) : (
+                        `${addr.dateFrom} — ${addr.dateTo}`
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Form Fields */}
           <div className="space-y-3">

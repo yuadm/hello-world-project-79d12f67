@@ -13,7 +13,9 @@ import {
   Calendar,
   Building2,
   Download,
-  Eye
+  Eye,
+  MapPin,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { SendLAFormModal } from "./SendLAFormModal";
@@ -77,6 +79,20 @@ interface LASubmission {
   request_data: RequestData | null;
 }
 
+interface PreviousAddress {
+  address: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
+interface AddressWithLA extends PreviousAddress {
+  localAuthority: string;
+  isCurrent: boolean;
+  postcode: string;
+}
+
+type AddressesByLA = Record<string, AddressWithLA[]>;
+
 interface LocalAuthorityCheckCardProps {
   parentId: string;
   parentType: "application" | "employee";
@@ -103,6 +119,30 @@ interface LocalAuthorityCheckCardProps {
   role?: 'childminder' | 'household_member' | 'assistant' | 'manager' | 'nominated_individual';
 }
 
+// Helper to lookup Local Authority from postcode
+const lookupPostcodeLA = async (postcode: string): Promise<string | null> => {
+  try {
+    const cleanPostcode = postcode.replace(/\s/g, "").toUpperCase();
+    const response = await fetch(`https://api.postcodes.io/postcodes/${cleanPostcode}`);
+    if (response.ok) {
+      const data = await response.json();
+      return data.result?.admin_district || null;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error looking up postcode:", error);
+    return null;
+  }
+};
+
+// Helper to extract postcode from address string
+const extractPostcode = (address: string): string | null => {
+  // UK postcode regex pattern
+  const postcodeRegex = /([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})/i;
+  const match = address.match(postcodeRegex);
+  return match ? match[1] : null;
+};
+
 export const LocalAuthorityCheckCard = ({
   parentId,
   parentType,
@@ -120,6 +160,12 @@ export const LocalAuthorityCheckCard = ({
   const [selectedSubmission, setSelectedSubmission] = useState<LASubmission | null>(null);
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
+  
+  // New state for grouped addresses
+  const [addressesByLA, setAddressesByLA] = useState<AddressesByLA>({});
+  const [loadingLAs, setLoadingLAs] = useState(true);
+  const [selectedLA, setSelectedLA] = useState<string | null>(null);
+  const [selectedAddresses, setSelectedAddresses] = useState<AddressWithLA[]>([]);
 
   const fetchSubmissions = async () => {
     try {
@@ -139,9 +185,65 @@ export const LocalAuthorityCheckCard = ({
     }
   };
 
+  // Group addresses by Local Authority
+  const groupAddressesByLA = async () => {
+    setLoadingLAs(true);
+    const grouped: AddressesByLA = {};
+
+    try {
+      // Process current address
+      if (currentAddress?.postcode) {
+        const la = await lookupPostcodeLA(currentAddress.postcode);
+        const laName = la || localAuthority || "Unknown";
+        
+        if (!grouped[laName]) grouped[laName] = [];
+        grouped[laName].push({
+          address: [currentAddress.line1, currentAddress.line2, currentAddress.town, currentAddress.postcode]
+            .filter(Boolean)
+            .join(", "),
+          dateFrom: currentAddress.moveInDate,
+          dateTo: "Present",
+          localAuthority: laName,
+          isCurrent: true,
+          postcode: currentAddress.postcode,
+        });
+      }
+
+      // Process previous addresses
+      if (previousAddresses?.length) {
+        for (const addr of previousAddresses) {
+          const postcode = extractPostcode(addr.address);
+          let la = postcode ? await lookupPostcodeLA(postcode) : null;
+          const laName = la || "Unknown";
+          
+          if (!grouped[laName]) grouped[laName] = [];
+          grouped[laName].push({
+            ...addr,
+            localAuthority: laName,
+            isCurrent: false,
+            postcode: postcode || "",
+          });
+        }
+      }
+
+      setAddressesByLA(grouped);
+    } catch (error) {
+      console.error("Error grouping addresses by LA:", error);
+    } finally {
+      setLoadingLAs(false);
+    }
+  };
+
   useEffect(() => {
     fetchSubmissions();
-  }, [parentId, parentType]);
+    groupAddressesByLA();
+  }, [parentId, parentType, currentAddress, previousAddresses]);
+
+  const handleSendToLA = (laName: string, addresses: AddressWithLA[]) => {
+    setSelectedLA(laName);
+    setSelectedAddresses(addresses);
+    setShowModal(true);
+  };
 
   const handleDownloadPDF = async (submission: LASubmission) => {
     if (!submission.response_data || !submission.completed_at) return;
@@ -241,6 +343,22 @@ export const LocalAuthorityCheckCard = ({
     }
   };
 
+  // Get submissions for a specific LA
+  const getSubmissionsForLA = (laName: string) => {
+    return submissions.filter(s => s.local_authority === laName);
+  };
+
+  // Check if LA has a pending or completed submission
+  const getLAStatus = (laName: string) => {
+    const laSubmissions = getSubmissionsForLA(laName);
+    if (laSubmissions.some(s => s.status === "completed")) return "completed";
+    if (laSubmissions.some(s => s.status === "pending")) return "pending";
+    return "not_sent";
+  };
+
+  const uniqueLAs = Object.keys(addressesByLA).filter(la => la !== "Unknown");
+  const unknownAddresses = addressesByLA["Unknown"] || [];
+
   return (
     <>
       <AppleCard className="col-span-1 md:col-span-2 lg:col-span-1">
@@ -252,19 +370,12 @@ export const LocalAuthorityCheckCard = ({
                 <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg">Local Authority Check</h3>
-                <p className="text-sm text-muted-foreground">{localAuthority || 'No LA set'}</p>
+                <h3 className="font-semibold text-lg">Local Authority Checks</h3>
+                <p className="text-sm text-muted-foreground">
+                  {uniqueLAs.length} {uniqueLAs.length === 1 ? 'authority' : 'authorities'} identified
+                </p>
               </div>
             </div>
-            <Button 
-              size="sm" 
-              className="gap-2 bg-purple-600 hover:bg-purple-700"
-              onClick={() => setShowModal(true)}
-              disabled={!localAuthority}
-            >
-              <Send className="h-4 w-4" />
-              New Request
-            </Button>
           </div>
 
           {/* Stats Row */}
@@ -283,36 +394,162 @@ export const LocalAuthorityCheckCard = ({
             </div>
           </div>
 
-          {/* Recent Submissions */}
+          {/* Local Authorities Section */}
           <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Recent Requests</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">Local Authorities Identified</h4>
             
-            {loading ? (
-              <div className="space-y-2">
-                {[1, 2].map((i) => (
-                  <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
-                ))}
+            {loadingLAs ? (
+              <div className="flex items-center justify-center py-8 bg-muted/30 rounded-xl">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">Looking up local authorities...</span>
               </div>
-            ) : submissions.length === 0 ? (
+            ) : uniqueLAs.length === 0 ? (
               <div className="text-center py-8 bg-muted/30 rounded-xl">
-                <FileText className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-sm text-muted-foreground">No LA checks sent yet</p>
-                {localAuthority ? (
-                  <Button 
-                    variant="link" 
-                    className="text-purple-600 mt-2"
-                    onClick={() => setShowModal(true)}
-                  >
-                    Send your first request
-                  </Button>
-                ) : (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Set Local Authority in application to enable
-                  </p>
-                )}
+                <Building2 className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-sm text-muted-foreground">No addresses with valid postcodes found</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+              <div className="space-y-3">
+                {uniqueLAs.map((laName) => {
+                  const addresses = addressesByLA[laName];
+                  const laStatus = getLAStatus(laName);
+                  const laSubmissions = getSubmissionsForLA(laName);
+                  const latestSubmission = laSubmissions[0];
+
+                  return (
+                    <div
+                      key={laName}
+                      className="rounded-xl border border-border/50 bg-card overflow-hidden"
+                    >
+                      {/* LA Header */}
+                      <div className="flex items-center justify-between p-4 bg-muted/30">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                            <Building2 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div>
+                            <h5 className="font-semibold text-sm">{laName}</h5>
+                            <p className="text-xs text-muted-foreground">
+                              {addresses.length} {addresses.length === 1 ? 'address' : 'addresses'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {laStatus === "completed" && (
+                            <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Completed
+                            </Badge>
+                          )}
+                          {laStatus === "pending" && (
+                            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 gap-1">
+                              <Clock className="h-3 w-3" />
+                              Pending
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            variant={laStatus === "not_sent" ? "default" : "outline"}
+                            className={laStatus === "not_sent" ? "gap-2 bg-purple-600 hover:bg-purple-700" : "gap-2"}
+                            onClick={() => handleSendToLA(laName, addresses)}
+                          >
+                            <Send className="h-3 w-3" />
+                            {laStatus === "not_sent" ? "Send Request" : "Send Again"}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Addresses List */}
+                      <div className="p-3 space-y-2">
+                        {addresses.map((addr, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-start gap-2 text-sm p-2 rounded-lg bg-muted/30"
+                          >
+                            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="truncate">{addr.address}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {addr.isCurrent ? (
+                                  <span className="text-green-600 dark:text-green-400 font-medium">Current address</span>
+                                ) : (
+                                  `${addr.dateFrom} — ${addr.dateTo}`
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Latest Submission for this LA */}
+                      {latestSubmission && (
+                        <div className="px-3 pb-3">
+                          <div className="flex items-center justify-between p-2 rounded-lg border border-border/50 bg-background text-xs">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-3 w-3 text-muted-foreground" />
+                              <span className="font-medium">{latestSubmission.reference_id}</span>
+                              <span className="text-muted-foreground">
+                                {format(new Date(latestSubmission.sent_at), "dd MMM yyyy")}
+                              </span>
+                            </div>
+                            {latestSubmission.status === "completed" && latestSubmission.response_data && (
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => handleViewResponse(latestSubmission)}
+                                  title="View Response"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => handleDownloadPDF(latestSubmission)}
+                                  disabled={downloadingPdf === latestSubmission.id}
+                                  title="Download PDF"
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Unknown LA addresses */}
+                {unknownAddresses.length > 0 && (
+                  <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                      <span className="font-medium text-sm text-amber-700 dark:text-amber-400">
+                        Addresses with Unknown LA
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Unable to identify LA for these addresses. Please verify postcodes.
+                    </p>
+                    {unknownAddresses.map((addr, idx) => (
+                      <div key={idx} className="text-xs text-muted-foreground">
+                        • {addr.address}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Submissions */}
+          {submissions.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">All Requests</h4>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {submissions.slice(0, 5).map((submission) => (
                   <div
                     key={submission.id}
@@ -331,8 +568,8 @@ export const LocalAuthorityCheckCard = ({
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                           <span className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {submission.la_email}
+                            <Building2 className="h-3 w-3" />
+                            {submission.local_authority}
                           </span>
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
@@ -367,8 +604,8 @@ export const LocalAuthorityCheckCard = ({
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Info Box */}
           <div className="rounded-xl bg-purple-50 dark:bg-purple-900/20 p-4 border border-purple-100 dark:border-purple-800">
@@ -377,8 +614,8 @@ export const LocalAuthorityCheckCard = ({
               <div className="text-sm">
                 <p className="font-medium text-purple-900 dark:text-purple-100">About LA Children's Services Checks</p>
                 <p className="text-purple-700 dark:text-purple-300 mt-1">
-                  Under Ofsted's expectations, agencies should request information from Local Authority 
-                  children's services to assess an applicant's suitability to care for children.
+                  Requests are sent to each Local Authority separately, with only the addresses within their jurisdiction included. 
+                  This ensures compliance and GDPR-friendly data sharing.
                 </p>
               </div>
             </div>
@@ -388,14 +625,21 @@ export const LocalAuthorityCheckCard = ({
 
       <SendLAFormModal
         open={showModal}
-        onOpenChange={setShowModal}
+        onOpenChange={(open) => {
+          setShowModal(open);
+          if (!open) {
+            setSelectedLA(null);
+            setSelectedAddresses([]);
+          }
+        }}
         applicantName={applicantName}
         dateOfBirth={dateOfBirth}
         currentAddress={currentAddress}
         previousAddresses={previousAddresses}
         previousNames={previousNames}
         role={role}
-        localAuthority={localAuthority}
+        localAuthority={selectedLA || localAuthority}
+        targetAddresses={selectedAddresses}
         parentId={parentId}
         parentType={parentType}
         onSuccess={fetchSubmissions}
@@ -481,18 +725,15 @@ export const LocalAuthorityCheckCard = ({
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handleDownloadPDF(selectedSubmission)}
-                  disabled={downloadingPdf === selectedSubmission.id}
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </Button>
-              </div>
+              {/* Download Button */}
+              <Button 
+                className="w-full gap-2"
+                onClick={() => handleDownloadPDF(selectedSubmission)}
+                disabled={downloadingPdf === selectedSubmission.id}
+              >
+                <Download className="h-4 w-4" />
+                Download PDF
+              </Button>
             </div>
           )}
         </DialogContent>
