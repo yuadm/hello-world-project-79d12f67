@@ -114,6 +114,7 @@ export interface ChildminderApplication {
   // Section 5: Qualifications
   firstAid: TrainingEntry;
   safeguarding?: TrainingEntry;
+  foodHygiene?: TrainingEntry;
   eyfsChildminding?: TrainingEntry;
   level2Qual?: TrainingEntry;
 
@@ -163,12 +164,12 @@ export interface ChildminderApplication {
   offenceDetails?: OffenceEntry[];
 
   // Section 9: Declaration
-  declarationAccuracy: boolean;
-  declarationChangeNotification: boolean;
-  declarationInspectionCooperation: boolean;
-  declarationInformationSharing: boolean;
-  declarationDataProcessing: boolean;
+  consent1: boolean;
+  consent2: boolean;
+  consent3: boolean;
+  consent4: boolean;
+  consent5: boolean;
   signatureFullName: string;
+  declarationPrintName: string;
   signatureDate: string;
-  paymentMethod: string;
 }

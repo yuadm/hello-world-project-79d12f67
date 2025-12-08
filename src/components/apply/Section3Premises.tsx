@@ -69,7 +69,7 @@ export const Section3Premises = ({ form }: Props) => {
         description="Tell us about where you will provide childcare services."
       />
 
-      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Primary Childcare Premises</h3>
+      <h3 className="rk-subsection-title">Primary Childcare Premises</h3>
 
       <RKAutocomplete
         label="Local authority / council"
@@ -114,34 +114,35 @@ export const Section3Premises = ({ form }: Props) => {
             your own home, we will need to conduct suitability checks on everyone living there aged
             16 or over.
           </p>
-          <div>
+          
+          <div className="rk-address-grid">
             <RKInput
-              label="Postcode"
+              label="Address line 1"
               required
-              widthClass="10"
-              placeholder="e.g. SW1A 1AA"
-              {...register("childcareAddress.postcode")}
+              {...register("childcareAddress.line1")}
             />
-            <div className="mt-3">
+            <RKInput label="Address line 2" {...register("childcareAddress.line2")} />
+            <RKInput label="Town or city" required {...register("childcareAddress.town")} />
+            <div className="flex gap-2 items-end">
+              <RKInput
+                label="Postcode"
+                required
+                widthClass="full"
+                placeholder="e.g. SW1A 1AA"
+                {...register("childcareAddress.postcode")}
+              />
               <RKButton
                 type="button"
                 variant="secondary"
                 onClick={handleChildcarePostcodeLookup}
                 disabled={isLookingUpChildcarePostcode || !childcarePostcode}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 whitespace-nowrap h-[42px]"
               >
                 <Search className="h-4 w-4" />
-                {isLookingUpChildcarePostcode ? "Looking up..." : "Find address"}
+                {isLookingUpChildcarePostcode ? "..." : "Find"}
               </RKButton>
             </div>
           </div>
-          <RKInput
-            label="Childcare Address - Line 1"
-            required
-            {...register("childcareAddress.line1")}
-          />
-          <RKInput label="Address line 2" {...register("childcareAddress.line2")} />
-          <RKInput label="Town or city" required {...register("childcareAddress.town")} />
         </div>
       )}
 
@@ -160,7 +161,6 @@ export const Section3Premises = ({ form }: Props) => {
 
       {useAdditionalPremises === "Yes" && (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-rk-secondary">Additional Premises Details</h3>
           {additionalPremises.map((_, index) => (
             <div
               key={index}
@@ -202,6 +202,8 @@ export const Section3Premises = ({ form }: Props) => {
       )}
 
       <div className="rk-divider" />
+
+      <h3 className="rk-subsection-title">Outdoor Space & Pets</h3>
 
       <RKRadio
         legend="Do you have an outdoor space available for children at your premises?"
