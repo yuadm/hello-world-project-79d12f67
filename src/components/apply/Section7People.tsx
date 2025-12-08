@@ -38,19 +38,21 @@ export const Section7People = ({ form }: Props) => {
     <div className="space-y-8">
       <RKSectionTitle 
         title="Household Members"
-        description="Tell us about other people living at your childminding premises."
+        description="Tell us about other people living or working at your childminding premises."
       />
 
       <RKInfoBox type="info">
-        <strong>Important:</strong> All adults (16+) who live at your childminding premises will require DBS checks. Children under 16 do not require checks but must be declared.
+        <strong>Important:</strong> All adults (16+) who live at or work at your childminding premises will require DBS checks. This includes cleaners, gardeners or other workers present during childminding hours. Children under 16 do not require checks but must be declared.
       </RKInfoBox>
 
       {/* Adults in Home - Only for domestic premises */}
       {showHouseholdQuestions && (
         <>
+          <h3 className="rk-subsection-title">Adults at Premises</h3>
+
           <RKRadio
-            legend="Do any other adults (aged 16+) live at your childminding premises?"
-            hint="Include partners, adult children, relatives, lodgers, etc."
+            legend="Do any other adults (aged 16+) live at or work at your childminding premises?"
+            hint="Include partners, adult children, relatives, lodgers, cleaners, gardeners or other workers present during childminding hours."
             required
             name="adultsInHome"
             options={[
@@ -63,7 +65,6 @@ export const Section7People = ({ form }: Props) => {
 
           {adultsInHome === "Yes" && (
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-rk-secondary">Adult Household Members</h3>
               {adults.map((_, index) => (
                 <div
                   key={index}
@@ -80,17 +81,19 @@ export const Section7People = ({ form }: Props) => {
                       Remove
                     </button>
                   </div>
-                  <RKInput 
-                    label="Full name" 
-                    required
-                    {...register(`adults.${index}.fullName`)} 
-                  />
-                  <RKInput 
-                    label="Relationship to you"
-                    hint="e.g., Partner, Adult child, Parent, Lodger, etc."
-                    required
-                    {...register(`adults.${index}.relationship`)} 
-                  />
+                  <div className="rk-address-grid">
+                    <RKInput 
+                      label="Full name" 
+                      required
+                      {...register(`adults.${index}.fullName`)} 
+                    />
+                    <RKInput 
+                      label="Relationship to you"
+                      hint="e.g., Partner, Adult child, Parent, Lodger, Cleaner, etc."
+                      required
+                      {...register(`adults.${index}.relationship`)} 
+                    />
+                  </div>
                   <RKInput
                     label="Date of birth"
                     type="date"
@@ -112,6 +115,10 @@ export const Section7People = ({ form }: Props) => {
             </div>
           )}
 
+          <div className="rk-divider" />
+
+          <h3 className="rk-subsection-title">Children at Premises</h3>
+
           {/* Children in Home */}
           <RKRadio
             legend="Do any children (under 16) live at your childminding premises?"
@@ -128,7 +135,6 @@ export const Section7People = ({ form }: Props) => {
 
           {childrenInHome === "Yes" && (
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-rk-secondary">Children in Household</h3>
               {children.map((_, index) => (
                 <div
                   key={index}
@@ -145,18 +151,19 @@ export const Section7People = ({ form }: Props) => {
                       Remove
                     </button>
                   </div>
-                  <RKInput 
-                    label="Full name"
-                    required
-                    {...register(`children.${index}.fullName`)} 
-                  />
-                  <RKInput
-                    label="Date of birth"
-                    type="date"
-                    required
-                    widthClass="10"
-                    {...register(`children.${index}.dob`)}
-                  />
+                  <div className="rk-address-grid">
+                    <RKInput 
+                      label="Full name"
+                      required
+                      {...register(`children.${index}.fullName`)} 
+                    />
+                    <RKInput
+                      label="Date of birth"
+                      type="date"
+                      required
+                      {...register(`children.${index}.dob`)}
+                    />
+                  </div>
                 </div>
               ))}
               <RKButton

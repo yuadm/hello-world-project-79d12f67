@@ -356,11 +356,11 @@ export function validateSection8(data: Partial<ChildminderApplication>): Validat
 export function validateSection9(data: Partial<ChildminderApplication>): ValidationResult {
   const errors: string[] = [];
 
-  if (!data.declarationAccuracy) errors.push("You must confirm the accuracy of your information");
-  if (!data.declarationChangeNotification) errors.push("You must agree to notify changes");
-  if (!data.declarationInspectionCooperation) errors.push("You must agree to cooperate with inspections");
-  if (!data.declarationInformationSharing) errors.push("You must agree to information sharing");
-  if (!data.declarationDataProcessing) errors.push("You must agree to data processing");
+  if (!data.consent1) errors.push("You must agree to consent statement 1");
+  if (!data.consent2) errors.push("You must agree to consent statement 2");
+  if (!data.consent3) errors.push("You must agree to consent statement 3");
+  if (!data.consent4) errors.push("You must agree to consent statement 4");
+  if (!data.consent5) errors.push("You must agree to consent statement 5");
 
   if (!data.signatureFullName) {
     errors.push("Signature is required");

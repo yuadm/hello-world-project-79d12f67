@@ -910,40 +910,40 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
           <Text style={styles.sectionTitle}>9. Declaration</Text>
           
           <View style={styles.subsection}>
-            <Text style={styles.dataLabel}>Declaration Statements</Text>
+            <Text style={styles.dataLabel}>Local Authority Consent Statements</Text>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.declarationAccuracy && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consent1 && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                I confirm that the information I have provided is accurate and complete to the best of my knowledge.
+                Consent to share personal information with local authority.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.declarationChangeNotification && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consent2 && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                I understand that I must notify Ofsted of any changes to the information provided in this application.
+                Understanding that local authority may hold relevant information.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.declarationInspectionCooperation && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consent3 && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                I agree to cooperate with inspections and provide access to premises and records as required.
+                Consent to Ready Kids requesting information from local authority.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.declarationInformationSharing && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consent4 && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                I consent to information being shared with relevant authorities for safeguarding purposes.
+                Understanding information will be used for suitability assessment.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.declarationDataProcessing && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consent5 && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                I consent to my data being processed in accordance with data protection legislation.
+                Confirmation that all information is true and complete.
               </Text>
             </View>
           </View>
@@ -963,11 +963,6 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
                 </View>
               </View>
             </View>
-          </View>
-
-          <View style={styles.dataRow}>
-            <Text style={styles.dataLabel}>Payment Method</Text>
-            <Text style={styles.dataValue}>{application.paymentMethod || "N/A"}</Text>
           </View>
         </View>
 

@@ -197,14 +197,14 @@ export function dbToFormData(dbApp: DBApplication): Partial<ChildminderApplicati
     offenceDetails: offenceDetails,
 
     // Section 9: Declaration
-    declarationAccuracy: dbApp.declaration_confirmed,
-    declarationChangeNotification: dbApp.declaration_change_notification,
-    declarationInspectionCooperation: dbApp.declaration_inspection_cooperation,
-    declarationInformationSharing: dbApp.declaration_information_sharing,
-    declarationDataProcessing: dbApp.declaration_data_processing,
+    consent1: dbApp.declaration_confirmed,
+    consent2: dbApp.declaration_change_notification,
+    consent3: dbApp.declaration_information_sharing,
+    consent4: dbApp.declaration_data_processing,
+    consent5: dbApp.declaration_inspection_cooperation,
     signatureFullName: dbApp.declaration_signature,
+    declarationPrintName: dbApp.declaration_signature,
     signatureDate: dbApp.declaration_date,
-    paymentMethod: dbApp.payment_method,
   };
 }
 
@@ -322,13 +322,13 @@ export function formToDbData(formData: Partial<ChildminderApplication>) {
     safeguarding_details: formData.socialServicesDetails,
 
     // Declaration
-    declaration_confirmed: formData.declarationAccuracy,
-    declaration_change_notification: formData.declarationChangeNotification,
-    declaration_inspection_cooperation: formData.declarationInspectionCooperation,
-    declaration_information_sharing: formData.declarationInformationSharing,
-    declaration_data_processing: formData.declarationDataProcessing,
+    declaration_confirmed: formData.consent5,
+    declaration_change_notification: formData.consent5,
+    declaration_inspection_cooperation: formData.consent5,
+    declaration_information_sharing: formData.consent3,
+    declaration_data_processing: formData.consent4,
     declaration_signature: formData.signatureFullName,
     declaration_date: formData.signatureDate,
-    payment_method: formData.paymentMethod,
+    payment_method: null,
   };
 }

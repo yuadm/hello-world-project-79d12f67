@@ -1,12 +1,10 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKRadio, RKInput, RKSelect, RKButton, RKSectionTitle, RKInfoBox, RKCheckbox } from "./rk";
+import { RKRadio, RKInput, RKButton, RKSectionTitle, RKInfoBox, RKCheckbox } from "./rk";
 import { useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import {
   calculateCapacityRatios,
-  validateCapacity,
-  getCapacityGuidanceText,
 } from "@/lib/capacityCalculator";
 
 interface Props {
@@ -17,12 +15,8 @@ export const Section4Service = ({ form }: Props) => {
   const { register, watch, setValue } = form;
   const ageGroups = watch("ageGroups") || [];
   const workWithOthers = watch("workWithOthers");
-  const numberOfAssistants = watch("numberOfAssistants") || 1;
+  const numberOfAssistants = watch("numberOfAssistants") || 0;
   const assistants = watch("assistants") || [];
-  const proposedUnder1 = watch("proposedUnder1") || 0;
-  const proposedUnder5 = watch("proposedUnder5") || 0;
-  const proposed5to8 = watch("proposed5to8") || 0;
-  const proposed8plus = watch("proposed8plus") || 0;
 
   const toggleAgeGroup = (ageGroup: string) => {
     if (ageGroups.includes(ageGroup)) {
@@ -45,21 +39,6 @@ export const Section4Service = ({ form }: Props) => {
     return calculateCapacityRatios(workWithOthers, numberOfAssistants);
   }, [workWithOthers, numberOfAssistants]);
 
-  // Validate proposed numbers
-  const validation = useMemo(() => {
-    return validateCapacity(
-      {
-        under1: proposedUnder1,
-        under5: proposedUnder5,
-        age5to8: proposed5to8,
-        age8plus: proposed8plus,
-      },
-      capacityRatios
-    );
-  }, [proposedUnder1, proposedUnder5, proposed5to8, proposed8plus, capacityRatios]);
-
-  const guidanceText = getCapacityGuidanceText(capacityRatios);
-
   return (
     <div className="space-y-8">
       <RKSectionTitle 
@@ -67,15 +46,24 @@ export const Section4Service = ({ form }: Props) => {
         description="Tell us about the childcare services you plan to offer."
       />
 
+      <RKInfoBox type="info" title="Understanding the Registers">
+        <p className="text-sm mb-2">Depending on the ages of children you care for, you may be registered on:</p>
+        <ul className="list-disc list-inside text-sm space-y-1">
+          <li><strong>Early Years Register</strong> - for children from birth to 31 August after their 5th birthday</li>
+          <li><strong>Compulsory Childcare Register</strong> - for children from 1 September after their 5th birthday until their 8th birthday</li>
+          <li><strong>Voluntary Childcare Register</strong> - for children aged 8 and over</li>
+        </ul>
+      </RKInfoBox>
+
       <div className="space-y-4">
         <label className="block text-sm font-medium text-rk-text">
           Which age groups will you care for?<span className="text-rk-error ml-1">*</span>
         </label>
         <div className="space-y-3">
           {[
-            { value: "0-5", label: "Children aged 0-5 years (Early Years Foundation Stage)" },
-            { value: "5-7", label: "Children aged 5-7 years" },
-            { value: "8+", label: "Children aged 8 years and over" },
+            { value: "0-5", label: "Children aged 0-5 years (Early Years Register)" },
+            { value: "5-7", label: "Children aged 5-7 years (Compulsory Childcare Register)" },
+            { value: "8+", label: "Children aged 8 years and over (Voluntary Childcare Register)" },
           ].map((option) => (
             <RKCheckbox
               key={option.value}
@@ -87,6 +75,10 @@ export const Section4Service = ({ form }: Props) => {
           ))}
         </div>
       </div>
+
+      <div className="rk-divider" />
+
+      <h3 className="rk-subsection-title">Capacity Calculator</h3>
 
       <RKRadio
         legend="Will you work with any assistants or co-childminders?"
@@ -101,190 +93,112 @@ export const Section4Service = ({ form }: Props) => {
       />
 
       {workWithOthers === "Yes" && (
-        <div className="space-y-4">
-          <RKInput
-            label="How many assistants/co-childminders?"
-            type="number"
-            required
-            widthClass="10"
-            min={1}
-            max={3}
-            hint="Maximum 3 assistants"
-            {...register("numberOfAssistants", { valueAsNumber: true })}
-          />
-          
-          {numberOfAssistants > 3 && (
-            <RKInfoBox type="error">
-              You cannot work with more than 3 assistants. Please adjust the number.
-            </RKInfoBox>
-          )}
-
-          {/* Assistants Details */}
-          <div className="space-y-6 border-t border-rk-border pt-6">
-            <RKInfoBox type="info" title="Assistants and Co-childminders Details">
-              Anyone working with you must complete a full suitability check (Form CMA-A1). 
-              Please provide their basic details below so we can initiate their application.
-            </RKInfoBox>
-            
-            {assistants.map((_, index) => (
-              <div
-                key={index}
-                className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-semibold text-lg text-rk-text">Person {index + 1}</h4>
-                  <button
-                    type="button"
-                    onClick={() => removeAssistant(index)}
-                    className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 font-medium text-sm"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Remove
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <RKInput
-                    label="First name"
-                    required
-                    {...register(`assistants.${index}.firstName`)}
-                  />
-                  <RKInput
-                    label="Last name"
-                    required
-                    {...register(`assistants.${index}.lastName`)}
-                  />
-                  
-                  <RKInput
-                    label="Date of birth"
-                    hint="dd/mm/yyyy"
-                    type="date"
-                    required
-                    {...register(`assistants.${index}.dob`)}
-                  />
-                  <RKSelect
-                    label="Role"
-                    required
-                    options={[
-                      { value: "", label: "Select role" },
-                      { value: "Assistant", label: "Assistant" },
-                      { value: "Co-childminder", label: "Co-childminder" }
-                    ]}
-                    {...register(`assistants.${index}.role`)}
-                  />
-                  
-                  <RKInput
-                    label="Email address"
-                    type="email"
-                    required
-                    {...register(`assistants.${index}.email`)}
-                  />
-                  <RKInput
-                    label="Mobile number"
-                    type="tel"
-                    required
-                    {...register(`assistants.${index}.phone`)}
-                  />
-                </div>
-              </div>
-            ))}
-            
-            <RKButton
-              type="button"
-              variant="secondary"
-              onClick={addAssistant}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add person
-            </RKButton>
-          </div>
-        </div>
+        <RKInput
+          label="How many assistants/co-childminders?"
+          type="number"
+          required
+          widthClass="10"
+          min={1}
+          max={3}
+          hint="Maximum 3 assistants"
+          {...register("numberOfAssistants", { valueAsNumber: true })}
+        />
       )}
 
-      {/* Capacity Guidance Info Box */}
-      <RKInfoBox type="info" title="Your Maximum Capacity">
-        <p className="text-sm mb-2">
-          Based on {capacityRatios.totalAdults} adult{capacityRatios.totalAdults > 1 ? "s" : ""}, these are your standard ratios (subject to Ofsted approval):
-        </p>
-        <ul className="list-disc list-inside text-sm space-y-1">
-          {guidanceText.map((text, index) => (
-            <li key={index}>{text}</li>
-          ))}
-        </ul>
+      {/* Visual Capacity Calculator */}
+      <div className="rk-capacity-calculator">
+        <div className="rk-capacity-card">
+          <div className="value">{capacityRatios.totalAdults}</div>
+          <div className="label">Total Adults</div>
+        </div>
+        <div className="rk-capacity-card">
+          <div className="value">{capacityRatios.maxUnder5}</div>
+          <div className="label">Max Under 5s</div>
+        </div>
+        <div className="rk-capacity-card">
+          <div className="value">{capacityRatios.maxUnder1}</div>
+          <div className="label">Max Under 1s</div>
+        </div>
+        <div className="rk-capacity-card">
+          <div className="value">{capacityRatios.maxUnder8}</div>
+          <div className="label">Max Under 8s</div>
+        </div>
+      </div>
+
+      <RKInfoBox type="info">
+        These limits are based on EYFS statutory requirements. Your actual registered numbers may vary based on your premises and Ofsted assessment.
       </RKInfoBox>
 
-      {/* Real-time Capacity Validation */}
-      {(proposedUnder1 > 0 || proposedUnder5 > 0 || proposed5to8 > 0 || proposed8plus > 0) && (
-        <div className="space-y-3">
-          {validation.isValid && validation.warnings.length === 0 && (
-            <RKInfoBox type="success" title="Your proposed numbers are within limits">
-              Total under 5: {validation.totalUnder5} of {capacityRatios.maxUnder5} | 
-              Total under 8: {validation.totalUnder8} of {capacityRatios.maxUnder8}
-            </RKInfoBox>
-          )}
+      {workWithOthers === "Yes" && numberOfAssistants > 0 && (
+        <>
+          <div className="rk-divider" />
+          
+          <h3 className="rk-subsection-title">Assistants Details</h3>
 
-          {validation.warnings.length > 0 && validation.isValid && (
-            <RKInfoBox type="warning" title="Notice">
-              <ul className="text-sm space-y-1">
-                {validation.warnings.map((warning, index) => (
-                  <li key={index}>• {warning}</li>
-                ))}
-              </ul>
-            </RKInfoBox>
-          )}
-
-          {validation.errors.length > 0 && (
-            <RKInfoBox type="error" title="Capacity limits exceeded">
-              <ul className="text-sm space-y-1">
-                {validation.errors.map((error, index) => (
-                  <li key={index}>• {error}</li>
-                ))}
-              </ul>
-            </RKInfoBox>
-          )}
-        </div>
+          <RKInfoBox type="info" title="Suitability Checks Required">
+            Anyone working with you must complete a full suitability check (Form CMA-A1). 
+            Please provide their basic details below so we can initiate their application.
+          </RKInfoBox>
+          
+          {assistants.map((_, index) => (
+            <div
+              key={index}
+              className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-semibold text-lg text-rk-text">Person {index + 1}</h4>
+                <button
+                  type="button"
+                  onClick={() => removeAssistant(index)}
+                  className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 font-medium text-sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove
+                </button>
+              </div>
+              
+              <div className="rk-address-grid">
+                <RKInput
+                  label="First name"
+                  required
+                  {...register(`assistants.${index}.firstName`)}
+                />
+                <RKInput
+                  label="Last name"
+                  required
+                  {...register(`assistants.${index}.lastName`)}
+                />
+                <RKInput
+                  label="Date of birth"
+                  type="date"
+                  required
+                  {...register(`assistants.${index}.dob`)}
+                />
+                <RKInput
+                  label="Email address"
+                  type="email"
+                  required
+                  {...register(`assistants.${index}.email`)}
+                />
+              </div>
+            </div>
+          ))}
+          
+          <RKButton
+            type="button"
+            variant="secondary"
+            onClick={addAssistant}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add person
+          </RKButton>
+        </>
       )}
-
-      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Proposed Numbers of Children</h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RKInput
-          label="Children under 1 year"
-          type="number"
-          widthClass="10"
-          min={0}
-          max={capacityRatios.maxUnder1}
-          hint={`Maximum: ${capacityRatios.maxUnder1}`}
-          {...register("proposedUnder1", { valueAsNumber: true })}
-        />
-        <RKInput
-          label="Children aged 1-5 years"
-          type="number"
-          widthClass="10"
-          min={0}
-          hint="Not including children under 1"
-          {...register("proposedUnder5", { valueAsNumber: true })}
-        />
-        <RKInput
-          label="Children aged 5-8 years"
-          type="number"
-          widthClass="10"
-          min={0}
-          {...register("proposed5to8", { valueAsNumber: true })}
-        />
-        <RKInput
-          label="Children aged 8+ years"
-          type="number"
-          widthClass="10"
-          min={0}
-          {...register("proposed8plus", { valueAsNumber: true })}
-        />
-      </div>
 
       <div className="rk-divider" />
 
-      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Childcare Times</h3>
+      <h3 className="rk-subsection-title">Service Hours</h3>
       
       <div className="space-y-3">
         <label className="block text-sm font-medium text-rk-text">
