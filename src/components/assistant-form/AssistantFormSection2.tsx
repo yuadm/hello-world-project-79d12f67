@@ -1,8 +1,12 @@
+import { useState, useMemo } from "react";
 import { AssistantFormData } from "@/types/assistant";
-import { GovUKInput } from "@/components/apply/GovUKInput";
-import { GovUKRadio } from "@/components/apply/GovUKRadio";
-import { Button } from "@/components/ui/button";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
+import { RKInput, RKRadio, RKTextarea, RKSectionTitle, RKInfoBox, RKPostcodeLookup } from "@/components/apply/rk";
+import { Plus, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { 
+  calculateAddressHistoryCoverage, 
+  formatDateRange, 
+  daysBetween 
+} from "@/lib/addressHistoryCalculator";
 
 interface Props {
   formData: AssistantFormData;
@@ -11,21 +15,62 @@ interface Props {
 }
 
 export function AssistantFormSection2({ formData, setFormData, validationErrors = {} }: Props) {
-  const addPreviousAddress = () => {
+  const [showManualAddress, setShowManualAddress] = useState(!!formData.homeAddressLine1);
+  const [previousAddressManual, setPreviousAddressManual] = useState<Record<number, boolean>>(() => {
+    const initial: Record<number, boolean> = {};
+    formData.addressHistory.forEach((addr, index) => {
+      if (addr.line1 || addr.town || addr.postcode) {
+        initial[index] = true;
+      }
+    });
+    return initial;
+  });
+
+  const addressHistoryDatesKey = useMemo(() => {
+    return formData.addressHistory.map(entry => `${entry.moveIn || ''}-${entry.moveOut || ''}`).join('|');
+  }, [formData.addressHistory]);
+
+  const coverage = useMemo(() => {
+    if (!formData.homeMoveIn) return null;
+    
+    const historyForCalc = formData.addressHistory.map(addr => ({
+      address: { 
+        line1: addr.line1 || "", 
+        line2: addr.line2 || "", 
+        town: addr.town || "", 
+        postcode: addr.postcode || "" 
+      },
+      moveIn: addr.moveIn || "",
+      moveOut: addr.moveOut || ""
+    }));
+    
+    return calculateAddressHistoryCoverage(
+      { moveIn: formData.homeMoveIn },
+      historyForCalc
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.homeMoveIn, formData.addressHistory, addressHistoryDatesKey]);
+
+  const addAddressHistory = () => {
     setFormData(prev => ({
       ...prev,
-      addressHistory: [...prev.addressHistory, { address: "", moveIn: "", moveOut: "" }]
+      addressHistory: [...prev.addressHistory, { 
+        line1: "", line2: "", town: "", postcode: "", moveIn: "", moveOut: "" 
+      }]
     }));
   };
 
-  const removePreviousAddress = (index: number) => {
+  const removeAddressHistory = (index: number) => {
     setFormData(prev => ({
       ...prev,
       addressHistory: prev.addressHistory.filter((_, i) => i !== index)
     }));
+    const newManual = { ...previousAddressManual };
+    delete newManual[index];
+    setPreviousAddressManual(newManual);
   };
 
-  const updateAddress = (index: number, field: string, value: string) => {
+  const updateAddressHistory = (index: number, field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       addressHistory: prev.addressHistory.map((addr, i) =>
@@ -34,187 +79,294 @@ export function AssistantFormSection2({ formData, setFormData, validationErrors 
     }));
   };
 
-  // Calculate 5-year coverage
-  const calculateCoverage = () => {
-    const fiveYearsAgo = new Date();
-    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-    
-    if (!formData.homeMoveIn) return { hasGaps: false, coverageDate: null };
-    
-    const moveInDate = new Date(formData.homeMoveIn);
-    if (moveInDate <= fiveYearsAgo) return { hasGaps: false, coverageDate: null };
-    
-    let coverageDate = moveInDate;
-    if (formData.addressHistory.length > 0) {
-      const sortedHistory = [...formData.addressHistory]
-        .filter(a => a.moveIn)
-        .sort((a, b) => new Date(a.moveIn).getTime() - new Date(b.moveIn).getTime());
-      
-      if (sortedHistory.length > 0) {
-        coverageDate = new Date(sortedHistory[0].moveIn);
-      }
-    }
-    
-    return {
-      hasGaps: coverageDate > fiveYearsAgo,
-      coverageDate,
-      targetDate: fiveYearsAgo
-    };
+  const handleCurrentAddressSelect = (address: { line1: string; line2: string; town: string; postcode: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      homeAddressLine1: address.line1,
+      homeAddressLine2: address.line2,
+      homeTown: address.town,
+      homePostcode: address.postcode
+    }));
+    setShowManualAddress(true);
   };
 
-  const coverage = calculateCoverage();
+  const handlePreviousAddressSelect = (index: number, address: { line1: string; line2: string; town: string; postcode: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      addressHistory: prev.addressHistory.map((addr, i) =>
+        i === index ? { ...addr, ...address } : addr
+      )
+    }));
+    setPreviousAddressManual(prev => ({ ...prev, [index]: true }));
+  };
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-6">2. Your Address History</h2>
-      <p className="text-base mb-6 text-muted-foreground">
-        You must provide a complete history of all addresses where you have lived for the past 5 years. 
-        This is a mandatory requirement for background checks.
-      </p>
+      <RKSectionTitle 
+        title="2. Your Address History"
+        description="You must provide a complete history of all addresses where you have lived for the past 5 years. This is a mandatory requirement for background checks."
+      />
 
-      <div className="space-y-6">
-        <h3 className="text-2xl font-bold">Current Home Address</h3>
-        
-        <GovUKInput
-          id="homeAddressLine1"
-          label="Address line 1"
-          required
-          value={formData.homeAddressLine1}
-          onChange={(e) => setFormData({ ...formData, homeAddressLine1: e.target.value })}
-          error={validationErrors.homeAddressLine1}
-        />
+      <div className="space-y-8">
+        {/* Current Home Address */}
+        <div className="space-y-4">
+          <h3 className="rk-subsection-title">Current Home Address</h3>
 
-        <GovUKInput
-          id="homeAddressLine2"
-          label="Address line 2"
-          value={formData.homeAddressLine2}
-          onChange={(e) => setFormData({ ...formData, homeAddressLine2: e.target.value })}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <GovUKInput
-            id="homeTown"
-            label="Town or city"
-            required
-            value={formData.homeTown}
-            onChange={(e) => setFormData({ ...formData, homeTown: e.target.value })}
-            error={validationErrors.homeTown}
-          />
-          
-          <GovUKInput
-            id="homePostcode"
+          <RKPostcodeLookup
             label="Postcode"
+            hint="Start typing your postcode to search for addresses"
             required
-            validationType="postcode"
             value={formData.homePostcode}
-            onChange={(e) => setFormData({ ...formData, homePostcode: e.target.value })}
+            onChange={(postcode) => setFormData(prev => ({ ...prev, homePostcode: postcode }))}
+            onAddressSelect={handleCurrentAddressSelect}
             error={validationErrors.homePostcode}
           />
-        </div>
 
-        <GovUKInput
-          id="homeMoveIn"
-          label="When did you move into this address?"
-          type="date"
-          required
-          value={formData.homeMoveIn}
-          onChange={(e) => setFormData({ ...formData, homeMoveIn: e.target.value })}
-          error={validationErrors.homeMoveIn}
-        />
-
-        {coverage.hasGaps && (
-          <div className="bg-orange-50 dark:bg-orange-950/20 border-l-4 border-orange-500 p-4 rounded">
-            <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-orange-900 dark:text-orange-100">
-                  5-Year Address History Required
-                </p>
-                <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                  Your current address starts on {new Date(formData.homeMoveIn).toLocaleDateString()}.
-                  Please add previous addresses to cover from{" "}
-                  {coverage.targetDate?.toLocaleDateString()} until this date.
-                </p>
+          {showManualAddress && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="md:col-span-2">
+                <RKInput
+                  id="homeAddressLine1"
+                  label="Address line 1"
+                  required
+                  value={formData.homeAddressLine1}
+                  onChange={(e) => setFormData(prev => ({ ...prev, homeAddressLine1: e.target.value }))}
+                  error={validationErrors.homeAddressLine1}
+                />
               </div>
-            </div>
-          </div>
-        )}
-
-        <div className="border-t pt-6 mt-8">
-          <h3 className="text-2xl font-bold mb-4">5-Year Address History</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Please add all previous addresses from the last 5 years. Your current address is already recorded above.
-          </p>
-
-          {formData.addressHistory.length > 0 && (
-            <div className="space-y-4 mb-4">
-              {formData.addressHistory.map((addr, index) => (
-                <div key={index} className="p-4 border-l-4 border-border bg-card space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="text-lg font-semibold">Previous Address {index + 1}</h4>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removePreviousAddress(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <GovUKInput
-                    id={`prevAddress_${index}`}
-                    label="Full address"
-                    required
-                    value={addr.address}
-                    onChange={(e) => updateAddress(index, "address", e.target.value)}
-                  />
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <GovUKInput
-                      id={`prevAddressMoveIn_${index}`}
-                      label="Move in date"
-                      type="date"
-                      required
-                      value={addr.moveIn}
-                      onChange={(e) => updateAddress(index, "moveIn", e.target.value)}
-                    />
-                    <GovUKInput
-                      id={`prevAddressMoveOut_${index}`}
-                      label="Move out date"
-                      type="date"
-                      hint="Leave blank if current"
-                      value={addr.moveOut}
-                      onChange={(e) => updateAddress(index, "moveOut", e.target.value)}
-                    />
-                  </div>
-                </div>
-              ))}
+              <div className="md:col-span-2">
+                <RKInput
+                  id="homeAddressLine2"
+                  label="Address line 2"
+                  hint="Optional"
+                  value={formData.homeAddressLine2}
+                  onChange={(e) => setFormData(prev => ({ ...prev, homeAddressLine2: e.target.value }))}
+                />
+              </div>
+              <RKInput
+                id="homeTown"
+                label="Town or city"
+                required
+                value={formData.homeTown}
+                onChange={(e) => setFormData(prev => ({ ...prev, homeTown: e.target.value }))}
+                error={validationErrors.homeTown}
+              />
+              <RKInput
+                id="homePostcode"
+                label="Postcode"
+                required
+                className="max-w-[200px]"
+                value={formData.homePostcode}
+                onChange={(e) => setFormData(prev => ({ ...prev, homePostcode: e.target.value }))}
+                error={validationErrors.homePostcode}
+              />
             </div>
           )}
 
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={addPreviousAddress}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add previous address
-          </Button>
+          <RKInput
+            id="homeMoveIn"
+            label="When did you move into this address?"
+            type="date"
+            required
+            className="max-w-[200px]"
+            value={formData.homeMoveIn}
+            onChange={(e) => setFormData(prev => ({ ...prev, homeMoveIn: e.target.value }))}
+            error={validationErrors.homeMoveIn}
+          />
         </div>
 
-        <GovUKRadio
-          name="livedOutsideUK"
-          legend="Have you lived outside the UK in the last 5 years?"
-          required
-          options={[
-            { value: "Yes", label: "Yes" },
-            { value: "No", label: "No" }
-          ]}
-          value={formData.livedOutsideUK}
-          onChange={(value) => setFormData({ ...formData, livedOutsideUK: value })}
-          error={validationErrors.livedOutsideUK}
-        />
+        {/* 5-Year Address History */}
+        <div className="space-y-4">
+          <h3 className="rk-subsection-title">5-Year Address History</h3>
+          <p className="text-sm text-gray-600 -mt-2">
+            Please add all previous addresses from the last 5 years. Your current address is already recorded above.
+          </p>
+
+          {/* Timeline Status Card */}
+          {coverage ? (
+            <div className={`flex items-start gap-3 p-4 rounded-lg border ${
+              coverage.isCovered 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-amber-50 border-amber-200'
+            }`}>
+              <div className={`flex-shrink-0 ${coverage.isCovered ? 'text-green-600' : 'text-amber-600'}`}>
+                {coverage.isCovered ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5" />
+                )}
+              </div>
+              <div>
+                <span className={`font-semibold text-sm ${coverage.isCovered ? 'text-green-800' : 'text-amber-800'}`}>
+                  {coverage.isCovered ? 'Address history complete' : 'Incomplete address history'}
+                </span>
+                <p className={`text-sm mt-1 ${coverage.isCovered ? 'text-green-700' : 'text-amber-700'}`}>
+                  Coverage: {Math.round(coverage.coveragePercentage)}% ({coverage.totalDaysCovered} of {coverage.requiredDays} days)
+                </p>
+                {!coverage.isCovered && coverage.gaps.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-amber-800">Gaps detected:</p>
+                    <ul className="text-sm text-amber-700 mt-1 space-y-0.5">
+                      {coverage.gaps.map((gap, index) => (
+                        <li key={index}>• {formatDateRange(gap.start, gap.end)} ({daysBetween(gap.start, gap.end)} days)</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 p-4 rounded-lg border bg-gray-50 border-gray-200">
+              <AlertTriangle className="h-5 w-5 text-gray-500 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-sm text-gray-700">Address history status</span>
+                <p className="text-sm text-gray-600 mt-1">Enter your current address move-in date to calculate coverage.</p>
+              </div>
+            </div>
+          )}
+
+          {/* Previous Addresses */}
+          <div className="space-y-4">
+            {formData.addressHistory.map((addr, index) => (
+              <div
+                key={index}
+                className="p-5 bg-white border border-gray-200 rounded-xl space-y-4"
+              >
+                <div className="flex justify-between items-center">
+                  <h4 className="font-semibold text-gray-900">Previous Address {index + 1}</h4>
+                  <button
+                    type="button"
+                    onClick={() => removeAddressHistory(index)}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <RKPostcodeLookup
+                  label="Postcode"
+                  hint="Start typing the postcode to search"
+                  required
+                  value={addr.postcode || ""}
+                  onChange={(postcode) => updateAddressHistory(index, "postcode", postcode)}
+                  onAddressSelect={(address) => handlePreviousAddressSelect(index, address)}
+                />
+
+                {previousAddressManual[index] && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <RKInput
+                        id={`addressHistory_${index}_line1`}
+                        label="Address line 1"
+                        required
+                        value={addr.line1 || ""}
+                        onChange={(e) => updateAddressHistory(index, "line1", e.target.value)}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <RKInput
+                        id={`addressHistory_${index}_line2`}
+                        label="Address line 2"
+                        value={addr.line2 || ""}
+                        onChange={(e) => updateAddressHistory(index, "line2", e.target.value)}
+                      />
+                    </div>
+                    <RKInput
+                      id={`addressHistory_${index}_town`}
+                      label="Town or city"
+                      required
+                      value={addr.town || ""}
+                      onChange={(e) => updateAddressHistory(index, "town", e.target.value)}
+                    />
+                    <RKInput
+                      id={`addressHistory_${index}_postcode`}
+                      label="Postcode"
+                      required
+                      className="max-w-[200px]"
+                      value={addr.postcode || ""}
+                      onChange={(e) => updateAddressHistory(index, "postcode", e.target.value)}
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <RKInput
+                    id={`addressHistory_${index}_moveIn`}
+                    label="Move-in date"
+                    type="date"
+                    required
+                    value={addr.moveIn}
+                    onChange={(e) => updateAddressHistory(index, "moveIn", e.target.value)}
+                  />
+                  <RKInput
+                    id={`addressHistory_${index}_moveOut`}
+                    label="Move-out date"
+                    type="date"
+                    required
+                    value={addr.moveOut}
+                    onChange={(e) => updateAddressHistory(index, "moveOut", e.target.value)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addAddressHistory}
+            disabled={coverage?.isCovered}
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-rk-primary border-2 border-dashed border-gray-300 rounded-lg hover:border-rk-primary hover:bg-rk-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="h-4 w-4" />
+            {coverage?.isCovered ? "Address history complete" : "Add previous address"}
+          </button>
+
+          {(!coverage?.isCovered || coverage?.gaps.length > 0) && formData.addressHistory.length > 0 && (
+            <RKTextarea
+              id="addressGaps"
+              label="Explain any gaps in your address history"
+              hint="Please explain periods of travel, temporary accommodation, or other circumstances."
+              rows={4}
+              value={formData.addressGaps || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, addressGaps: e.target.value }))}
+            />
+          )}
+        </div>
+
+        {/* Overseas History */}
+        <div className="space-y-4">
+          <h3 className="rk-subsection-title">Overseas History</h3>
+
+          <RKRadio
+            name="livedOutsideUK"
+            legend="Have you lived outside the UK in the last 5 years?"
+            required
+            options={[
+              { value: "Yes", label: "Yes" },
+              { value: "No", label: "No" }
+            ]}
+            value={formData.livedOutsideUK}
+            onChange={(value) => setFormData(prev => ({ ...prev, livedOutsideUK: value }))}
+            error={validationErrors.livedOutsideUK}
+          />
+
+          {formData.livedOutsideUK === "Yes" && (
+            <RKInfoBox type="info">
+              <p className="mb-3">
+                If you have lived outside the UK, you must obtain a police check or 'Certificate of Good Conduct' from the relevant countries.
+              </p>
+              <RKTextarea
+                id="outsideUKDetails"
+                label="Please provide details"
+                hint="Include which countries, dates, and confirmation that you will provide the required documentation."
+                required
+                rows={4}
+                value={formData.outsideUKDetails || ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, outsideUKDetails: e.target.value }))}
+              />
+            </RKInfoBox>
+          )}
+        </div>
       </div>
     </div>
   );

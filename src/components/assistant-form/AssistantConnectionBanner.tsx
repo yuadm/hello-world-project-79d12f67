@@ -1,5 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle2, Link } from "lucide-react";
 
 interface AssistantConnectionBannerProps {
   applicantName: string;
@@ -13,30 +12,32 @@ export const AssistantConnectionBanner = ({
   assistantName 
 }: AssistantConnectionBannerProps) => {
   return (
-    <Alert className="bg-green-50 dark:bg-green-950/20 border-green-200 mb-6">
-      <CheckCircle2 className="h-5 w-5 text-green-600" />
-      <AlertDescription>
-        <div className="space-y-1">
-          <p className="font-semibold text-green-900 dark:text-green-100">
-            Connected to Childminder Registration:
+    <div className="bg-gradient-to-r from-rk-primary/5 via-rk-primary/10 to-rk-primary/5 border border-rk-primary/20 rounded-2xl p-6 mb-8">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-full bg-rk-primary/10 flex items-center justify-center flex-shrink-0">
+          <Link className="w-6 h-6 text-rk-primary" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle2 className="h-5 w-5 text-rk-primary" />
+            <h3 className="text-lg font-semibold text-rk-text">Secure Link Verified</h3>
+          </div>
+          <p className="text-rk-text-light mb-3">
+            This form is connected to the registration of:
           </p>
-          <p className="text-green-800 dark:text-green-200">
-            <strong>{applicantName}</strong>
-          </p>
-          {applicantAddress && (
-            <p className="text-sm text-green-700 dark:text-green-300">
-              {applicantAddress.line1}, {applicantAddress.town}, {applicantAddress.postcode}
-            </p>
-          )}
-          <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-            ✓ Secure Link Verified
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            This information is set by the childminder who invited you. If it is incorrect, 
-            you must ask them to cancel this request and send a new, correct invitation.
+          <div className="bg-white/80 rounded-xl p-4 border border-rk-border">
+            <p className="font-semibold text-rk-text text-lg">{applicantName}</p>
+            {applicantAddress && (
+              <p className="text-sm text-rk-text-light mt-1">
+                {applicantAddress.line1}, {applicantAddress.town}, {applicantAddress.postcode}
+              </p>
+            )}
+          </div>
+          <p className="text-xs text-rk-text-light mt-3">
+            If this information is incorrect, please contact the childminder who invited you to cancel this request and send a new invitation.
           </p>
         </div>
-      </AlertDescription>
-    </Alert>
+      </div>
+    </div>
   );
 };

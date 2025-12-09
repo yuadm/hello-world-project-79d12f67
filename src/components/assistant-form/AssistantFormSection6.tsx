@@ -1,8 +1,6 @@
 import { AssistantFormData } from "@/types/assistant";
-import { GovUKInput } from "@/components/apply/GovUKInput";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { AlertCircle } from "lucide-react";
+import { RKSectionTitle } from "@/components/apply/rk";
+import { Shield, Pencil, CheckCircle, FileText } from "lucide-react";
 
 interface Props {
   formData: AssistantFormData;
@@ -10,133 +8,156 @@ interface Props {
   validationErrors?: Record<string, string>;
 }
 
+interface ConsentItemProps {
+  text: string;
+  isChecked: boolean;
+  onToggle: () => void;
+}
+
+const ConsentItem = ({ text, isChecked, onToggle }: ConsentItemProps) => (
+  <div 
+    className={`rk-consent-item ${isChecked ? 'checked' : ''}`}
+    onClick={onToggle}
+  >
+    <div className="checkbox-wrapper">
+      <input
+        type="checkbox"
+        checked={isChecked}
+        onChange={onToggle}
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+    <span className="text">{text}</span>
+  </div>
+);
+
 export function AssistantFormSection6({ formData, setFormData, validationErrors = {} }: Props) {
   return (
-    <div>
-      <h2 className="text-3xl font-bold mb-6">6. Declaration & Submission</h2>
-      
-      <div className="space-y-6">
-        <div className="bg-muted p-4 rounded-md">
-          <p className="text-sm font-medium mb-4">
-            Before you submit this form, please read and confirm the following declarations:
-          </p>
+    <div className="space-y-8">
+      <RKSectionTitle 
+        title="6. Consent & Declaration"
+        description="Ready Kids must carry out background checks to assess your suitability to work with children, in line with Ofsted requirements."
+      />
 
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="consentChecks"
-                checked={formData.consentChecks}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, consentChecks: checked as boolean })
-                }
-              />
-              <div className="space-y-1">
-                <Label
-                  htmlFor="consentChecks"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  I consent to background checks *
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  I consent to DBS checks, reference checks, and verification of information provided in this form.
-                </p>
-              </div>
-            </div>
-            {validationErrors.consentChecks && (
-              <div className="flex items-center gap-2 text-[hsl(var(--govuk-red))] font-bold text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{validationErrors.consentChecks}</span>
-              </div>
-            )}
+      {/* Section A - Consent to Background Checks */}
+      <div className="rk-consent-section">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-full bg-rk-primary/10 flex items-center justify-center">
+            <Shield className="w-4 h-4 text-rk-primary" />
+          </div>
+          <h4 className="text-lg font-semibold text-rk-text m-0">A. Consent to Background Checks</h4>
+        </div>
+        
+        <div className="space-y-3">
+          <ConsentItem
+            text="I consent to Ready Kids carrying out all necessary checks, including with the Disclosure and Barring Service (DBS), local authorities, and referees, to assess my suitability to work with children."
+            isChecked={formData.consentChecks}
+            onToggle={() => setFormData(prev => ({ ...prev, consentChecks: !prev.consentChecks }))}
+          />
+        </div>
+        {validationErrors.consentChecks && (
+          <p className="text-sm text-rk-error mt-2">{validationErrors.consentChecks}</p>
+        )}
+      </div>
 
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="declarationTruth"
-                checked={formData.declarationTruth}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, declarationTruth: checked as boolean })
-                }
-              />
-              <div className="space-y-1">
-                <Label
-                  htmlFor="declarationTruth"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  I confirm this information is true *
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  I confirm that the information I have provided in this form is true and complete to the best of my knowledge.
-                </p>
-              </div>
-            </div>
-            {validationErrors.declarationTruth && (
-              <div className="flex items-center gap-2 text-[hsl(var(--govuk-red))] font-bold text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{validationErrors.declarationTruth}</span>
-              </div>
-            )}
+      {/* Section B - Declarations */}
+      <div className="rk-consent-section">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-full bg-rk-primary/10 flex items-center justify-center">
+            <CheckCircle className="w-4 h-4 text-rk-primary" />
+          </div>
+          <h4 className="text-lg font-semibold text-rk-text m-0">B. Declarations</h4>
+        </div>
+        
+        <div className="space-y-3">
+          <ConsentItem
+            text="I declare that the information provided in this form is true, accurate, and complete to the best of my knowledge. I understand that providing false or misleading information is an offence and may result in termination of my employment."
+            isChecked={formData.declarationTruth}
+            onToggle={() => setFormData(prev => ({ ...prev, declarationTruth: !prev.declarationTruth }))}
+          />
+          {validationErrors.declarationTruth && (
+            <p className="text-sm text-rk-error">{validationErrors.declarationTruth}</p>
+          )}
+          
+          <ConsentItem
+            text="I understand that I must notify my employer of any changes to this information, including any new cautions or convictions, within 14 days of the event."
+            isChecked={formData.declarationNotify}
+            onToggle={() => setFormData(prev => ({ ...prev, declarationNotify: !prev.declarationNotify }))}
+          />
+          {validationErrors.declarationNotify && (
+            <p className="text-sm text-rk-error">{validationErrors.declarationNotify}</p>
+          )}
+        </div>
 
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="declarationNotify"
-                checked={formData.declarationNotify}
-                onCheckedChange={(checked) => 
-                  setFormData({ ...formData, declarationNotify: checked as boolean })
-                }
-              />
-              <div className="space-y-1">
-                <Label
-                  htmlFor="declarationNotify"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                >
-                  I agree to notify of changes *
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  I understand that I must notify the childminder of any changes to the information provided in this form.
-                </p>
-              </div>
-            </div>
-            {validationErrors.declarationNotify && (
-              <div className="flex items-center gap-2 text-[hsl(var(--govuk-red))] font-bold text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{validationErrors.declarationNotify}</span>
-              </div>
-            )}
+        {/* Privacy Policy Link */}
+        <div className="mt-4 pt-4 border-t border-rk-border">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-rk-primary" />
+            <span className="text-sm text-rk-text">
+              You can read our full{" "}
+              <a 
+                href="/privacy-policy" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-rk-primary hover:underline font-medium"
+              >
+                Privacy Policy
+              </a>{" "}
+              here.
+            </span>
           </div>
         </div>
+      </div>
 
-        <div className="border-t pt-6 mt-8">
-          <h3 className="text-2xl font-bold mb-4">Electronic Signature</h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            By typing your full name below, you are electronically signing this form.
-          </p>
-
-          <GovUKInput
-            id="signatureFullName"
-            label="Full name (electronic signature)"
-            hint="Type your full name exactly as it appears in Section 1"
-            required
-            value={formData.signatureFullName}
-            onChange={(e) => setFormData({ ...formData, signatureFullName: e.target.value })}
-            error={validationErrors.signatureFullName}
-          />
-
-          <GovUKInput
-            id="signatureDate"
-            label="Date"
-            type="date"
-            required
-            value={formData.signatureDate}
-            onChange={(e) => setFormData({ ...formData, signatureDate: e.target.value })}
-            disabled
-          />
+      {/* Signature Section */}
+      <div className="rk-signature-section">
+        <div className="rk-signature-header">
+          <Pencil className="icon w-5 h-5" />
+          <h4>Electronic Signature</h4>
         </div>
-
-        <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-md border border-blue-200 dark:border-blue-800">
-          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-            Once you submit this form, you will receive a confirmation email. 
-            The childminder will also be notified of your submission.
-          </p>
+        
+        <div className="rk-signature-grid">
+          <div>
+            <label className="block text-sm font-medium text-rk-text mb-1">
+              Your signature <span className="text-rk-error">*</span>
+            </label>
+            <p className="text-xs text-rk-text-light mb-2">Type your full name as your electronic signature</p>
+            <input 
+              type="text"
+              placeholder="Type your full name"
+              className="w-full px-4 py-3 border-2 border-rk-border rounded-[10px] bg-rk-gray-50 rk-signature-input focus:border-rk-primary focus:outline-none"
+              value={formData.signatureFullName}
+              onChange={(e) => setFormData(prev => ({ ...prev, signatureFullName: e.target.value }))}
+            />
+            {validationErrors.signatureFullName && (
+              <p className="text-sm text-rk-error mt-1">{validationErrors.signatureFullName}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-rk-text mb-1">
+              Full name (PRINT) <span className="text-rk-error">*</span>
+            </label>
+            <p className="text-xs text-rk-text-light mb-2">FULL NAME IN CAPITALS</p>
+            <input 
+              type="text"
+              placeholder="FULL NAME IN CAPITALS"
+              className="w-full px-4 py-3 border-2 border-rk-border rounded-[10px] bg-white focus:border-rk-primary focus:outline-none uppercase"
+              value={formData.signaturePrintName || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, signaturePrintName: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-rk-text mb-1">
+              Date <span className="text-rk-error">*</span>
+            </label>
+            <p className="text-xs text-rk-text-light mb-2">&nbsp;</p>
+            <input 
+              type="date"
+              className="w-full px-4 py-3 border-2 border-rk-border rounded-[10px] bg-white focus:border-rk-primary focus:outline-none"
+              value={formData.signatureDate}
+              onChange={(e) => setFormData(prev => ({ ...prev, signatureDate: e.target.value }))}
+            />
+          </div>
         </div>
       </div>
     </div>

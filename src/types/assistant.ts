@@ -17,8 +17,17 @@ export interface AssistantFormData {
   homeTown: string;
   homePostcode: string;
   homeMoveIn: string;
-  addressHistory: Array<{ address: string; moveIn: string; moveOut: string }>;
+  addressHistory: Array<{ 
+    line1?: string; 
+    line2?: string; 
+    town?: string; 
+    postcode?: string; 
+    moveIn: string; 
+    moveOut: string 
+  }>;
+  addressGaps?: string;
   livedOutsideUK: string;
+  outsideUKDetails?: string;
   
   // Section 3: Professional History & Training
   employmentHistory: Array<{ 
@@ -53,5 +62,6 @@ export interface AssistantFormData {
   declarationTruth: boolean;
   declarationNotify: boolean;
   signatureFullName: string;
+  signaturePrintName?: string;
   signatureDate: string;
 }
