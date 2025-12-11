@@ -160,8 +160,8 @@ export const Section5Qualifications = ({ form }: Props) => {
       {/* Safeguarding */}
       {(requires0to5 || requires5to7) && (
         <TrainingCard
-          title="Safeguarding Training"
-          question="Have you completed safeguarding children training?"
+          title="Safeguarding and child protection"
+          question="Have you completed safeguarding training?"
           required
           name="safeguarding.completed"
           value={watch("safeguarding.completed") || ""}
@@ -179,8 +179,8 @@ export const Section5Qualifications = ({ form }: Props) => {
       {/* EYFS/Childminding Course */}
       {requires5to7 && (
         <TrainingCard
-          title="EYFS/Childminding Course"
-          question="Have you completed an EYFS or childminding-specific course?"
+          title="Childminding Practice / EYFS Training"
+          question="Have you completed a relevant childminding course?"
           required
           name="eyfsChildminding.completed"
           value={watch("eyfsChildminding.completed") || ""}
@@ -212,8 +212,17 @@ export const Section5Qualifications = ({ form }: Props) => {
               <RKInput label="Completion date" type="date" widthClass="10" {...register("level2Qual.completionDate")} />
             </div>
           )}
-        </TrainingCard>
+          </TrainingCard>
       )}
+
+      {/* Other relevant training */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <RKInput
+          label="Other relevant training or qualifications"
+          hint="Please list any other relevant training (e.g SEND, Behaviour Management)"
+          {...register("otherTraining")}
+        />
+      </div>
     </div>
   );
 };
