@@ -118,6 +118,7 @@ export interface ChildminderApplication {
   foodHygiene?: TrainingEntry;
   eyfsChildminding?: TrainingEntry;
   level2Qual?: TrainingEntry;
+  otherTraining?: string;
 
   // Section 6: Employment
   employmentHistory: EmploymentEntry[];
