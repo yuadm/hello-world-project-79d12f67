@@ -24,6 +24,7 @@ export type Database = {
           child_volunteered: string | null
           child_volunteered_consent: boolean | null
           children_in_home: string | null
+          cochildminders: Json | null
           convictions_details: string | null
           created_at: string
           criminal_convictions: string | null
@@ -58,6 +59,7 @@ export type Database = {
           military_base: string | null
           national_insurance_number: string | null
           number_of_assistants: number | null
+          number_of_cochildminders: number | null
           other_circumstances: string | null
           other_circumstances_details: string | null
           outdoor_space: string | null
@@ -99,6 +101,7 @@ export type Database = {
           updated_at: string
           use_additional_premises: string | null
           user_id: string | null
+          work_with_cochildminders: string | null
           work_with_others: string | null
         }
         Insert: {
@@ -110,6 +113,7 @@ export type Database = {
           child_volunteered?: string | null
           child_volunteered_consent?: boolean | null
           children_in_home?: string | null
+          cochildminders?: Json | null
           convictions_details?: string | null
           created_at?: string
           criminal_convictions?: string | null
@@ -144,6 +148,7 @@ export type Database = {
           military_base?: string | null
           national_insurance_number?: string | null
           number_of_assistants?: number | null
+          number_of_cochildminders?: number | null
           other_circumstances?: string | null
           other_circumstances_details?: string | null
           outdoor_space?: string | null
@@ -185,6 +190,7 @@ export type Database = {
           updated_at?: string
           use_additional_premises?: string | null
           user_id?: string | null
+          work_with_cochildminders?: string | null
           work_with_others?: string | null
         }
         Update: {
@@ -196,6 +202,7 @@ export type Database = {
           child_volunteered?: string | null
           child_volunteered_consent?: boolean | null
           children_in_home?: string | null
+          cochildminders?: Json | null
           convictions_details?: string | null
           created_at?: string
           criminal_convictions?: string | null
@@ -230,6 +237,7 @@ export type Database = {
           military_base?: string | null
           national_insurance_number?: string | null
           number_of_assistants?: number | null
+          number_of_cochildminders?: number | null
           other_circumstances?: string | null
           other_circumstances_details?: string | null
           outdoor_space?: string | null
@@ -271,6 +279,7 @@ export type Database = {
           updated_at?: string
           use_additional_premises?: string | null
           user_id?: string | null
+          work_with_cochildminders?: string | null
           work_with_others?: string | null
         }
         Relationships: []
