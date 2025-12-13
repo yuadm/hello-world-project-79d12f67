@@ -164,7 +164,13 @@ serve(async (req) => {
     deletionLog.employees = 1;
     console.log('Employee record deleted');
 
-    // 11. Reset the application status to pending (if application exists)
+    // 11. Reset the application status to pending and re-create compliance records
+    const recreatedCounts = {
+      household_members: 0,
+      assistants: 0,
+      cochildminders: 0,
+    };
+
     if (applicationId) {
       const { error: updateAppError } = await supabase
         .from('childminder_applications')
@@ -173,9 +179,146 @@ serve(async (req) => {
       
       if (updateAppError) {
         console.error('Error resetting application status:', updateAppError);
-        // Don't fail the whole operation, just log it
       } else {
         console.log(`Application ${applicationId} status reset to pending`);
+      }
+
+      // Fetch the application data to re-create compliance records
+      const { data: application, error: appFetchError } = await supabase
+        .from('childminder_applications')
+        .select('people_in_household, cochildminders, number_of_assistants')
+        .eq('id', applicationId)
+        .single();
+
+      if (appFetchError) {
+        console.error('Failed to fetch application for re-creating compliance records:', appFetchError.message);
+      } else if (application) {
+        // Re-create household members from people_in_household
+        const peopleInHousehold = application.people_in_household as any;
+        if (peopleInHousehold) {
+          const householdMembersToInsert: any[] = [];
+
+          // Process adults
+          const adults = peopleInHousehold.adults || [];
+          for (const adult of adults) {
+            if (adult.fullName && adult.dob) {
+              householdMembersToInsert.push({
+                application_id: applicationId,
+                full_name: adult.fullName,
+                date_of_birth: adult.dob,
+                relationship: adult.relationship || null,
+                email: adult.email || null,
+                member_type: 'adult',
+                dbs_status: 'not_requested',
+                compliance_status: 'pending',
+              });
+            }
+          }
+
+          // Process children
+          const children = peopleInHousehold.children || [];
+          for (const child of children) {
+            if (child.fullName && child.dob) {
+              householdMembersToInsert.push({
+                application_id: applicationId,
+                full_name: child.fullName,
+                date_of_birth: child.dob,
+                relationship: child.relationship || null,
+                email: child.email || null,
+                member_type: 'child',
+                dbs_status: 'not_requested',
+                compliance_status: 'pending',
+              });
+            }
+          }
+
+          // Process assistants from peopleInHousehold.assistants array
+          const assistantsData = peopleInHousehold.assistants || [];
+          if (assistantsData.length > 0) {
+            const assistantsToInsert: any[] = [];
+            for (const assistant of assistantsData) {
+              if (assistant.firstName && assistant.lastName && assistant.dob) {
+                assistantsToInsert.push({
+                  application_id: applicationId,
+                  first_name: assistant.firstName,
+                  last_name: assistant.lastName,
+                  date_of_birth: assistant.dob,
+                  email: assistant.email || null,
+                  phone: assistant.phone || null,
+                  role: assistant.role || 'Assistant',
+                  dbs_status: 'not_requested',
+                  form_status: 'not_sent',
+                  compliance_status: 'pending',
+                });
+              }
+            }
+
+            if (assistantsToInsert.length > 0) {
+              const { data: insertedAssistants, error: insertAssistantsError } = await supabase
+                .from('compliance_assistants')
+                .insert(assistantsToInsert)
+                .select('id');
+
+              if (insertAssistantsError) {
+                console.error('Failed to re-create assistants:', insertAssistantsError.message);
+              } else {
+                recreatedCounts.assistants = insertedAssistants?.length || 0;
+                console.log(`Re-created ${recreatedCounts.assistants} assistants`);
+              }
+            }
+          }
+
+          if (householdMembersToInsert.length > 0) {
+            const { data: insertedMembers, error: insertMembersError } = await supabase
+              .from('compliance_household_members')
+              .insert(householdMembersToInsert)
+              .select('id');
+
+            if (insertMembersError) {
+              console.error('Failed to re-create household members:', insertMembersError.message);
+            } else {
+              recreatedCounts.household_members = insertedMembers?.length || 0;
+              console.log(`Re-created ${recreatedCounts.household_members} household members`);
+            }
+          }
+        }
+
+        // Re-create co-childminders from cochildminders array
+        const cochildminders = application.cochildminders as any[];
+        if (cochildminders && cochildminders.length > 0) {
+          const cochildmindersToInsert: any[] = [];
+          for (const ccm of cochildminders) {
+            if (ccm.firstName && ccm.lastName && ccm.dob) {
+              cochildmindersToInsert.push({
+                application_id: applicationId,
+                first_name: ccm.firstName,
+                last_name: ccm.lastName,
+                date_of_birth: ccm.dob,
+                email: ccm.email || null,
+                phone: ccm.phone || null,
+                dbs_status: 'not_requested',
+                form_status: 'not_sent',
+                compliance_status: 'pending',
+              });
+            }
+          }
+
+          if (cochildmindersToInsert.length > 0) {
+            const { data: insertedCcm, error: insertCcmError } = await supabase
+              .from('compliance_cochildminders')
+              .insert(cochildmindersToInsert)
+              .select('id');
+
+            if (insertCcmError) {
+              console.error('Failed to re-create co-childminders:', insertCcmError.message);
+            } else {
+              recreatedCounts.cochildminders = insertedCcm?.length || 0;
+              console.log(`Re-created ${recreatedCounts.cochildminders} co-childminders`);
+            }
+          }
+        }
+
+        console.log('Re-created compliance records:', JSON.stringify(recreatedCounts, null, 2));
       }
     }
 
@@ -184,8 +327,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Employee deleted and application reset to pending',
+        message: 'Employee deleted, application reset to pending, and compliance records re-created',
         deletionLog,
+        recreatedCounts,
         applicationId
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
