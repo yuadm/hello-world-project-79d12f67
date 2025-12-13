@@ -22,6 +22,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ApplicantReferences } from "@/types/employee";
 
+interface ApplicationAddressHistory {
+  address: string;
+  dateFrom: string;
+  dateTo: string;
+}
+
 const AdminEmployeeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,6 +35,7 @@ const AdminEmployeeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [dbsModalOpen, setDbsModalOpen] = useState(false);
+  const [previousAddresses, setPreviousAddresses] = useState<ApplicationAddressHistory[]>([]);
 
   useEffect(() => {
     fetchEmployeeData();
@@ -44,7 +51,28 @@ const AdminEmployeeDetail = () => {
 
       if (empError) throw empError;
 
-      setEmployee(empData as unknown as Employee);
+      const employeeData = empData as unknown as Employee;
+      setEmployee(employeeData);
+
+      // Fetch address history from linked application if exists
+      if (employeeData.application_id) {
+        const { data: appData, error: appError } = await supabase
+          .from('childminder_applications')
+          .select('address_history, current_address')
+          .eq('id', employeeData.application_id)
+          .single();
+
+        if (!appError && appData?.address_history) {
+          // Convert application address_history format to previousAddresses format
+          const addressHistory = appData.address_history as any[];
+          const formattedAddresses: ApplicationAddressHistory[] = addressHistory.map((addr: any) => ({
+            address: [addr.line1, addr.line2, addr.town, addr.postcode].filter(Boolean).join(', '),
+            dateFrom: addr.fromDate || addr.dateFrom || '',
+            dateTo: addr.toDate || addr.dateTo || '',
+          }));
+          setPreviousAddresses(formattedAddresses);
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -227,6 +255,7 @@ const AdminEmployeeDetail = () => {
               postcode: employee.postcode || '',
               moveInDate: '',
             }}
+            previousAddresses={previousAddresses}
             role="childminder"
           />
           <LocalAuthorityCheckCard
@@ -241,6 +270,7 @@ const AdminEmployeeDetail = () => {
               postcode: employee.postcode || '',
               moveInDate: '',
             }}
+            previousAddresses={previousAddresses}
             localAuthority={employee.local_authority || ''}
             role="childminder"
           />
