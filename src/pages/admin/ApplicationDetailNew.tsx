@@ -116,6 +116,7 @@ const ApplicationDetailNew = () => {
   const [existingEmployeeId, setExistingEmployeeId] = useState<string | null>(null);
   const [showDBSRequestModal, setShowDBSRequestModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     fetchApplication();
@@ -311,6 +312,7 @@ const ApplicationDetailNew = () => {
             onSaveSuccess={() => {
               setIsEditing(false);
               fetchApplication();
+              setRefreshKey(prev => prev + 1);
             }}
           />
         ) : (
@@ -459,18 +461,21 @@ const ApplicationDetailNew = () => {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <UnifiedHouseholdComplianceCard
+                key={`household-${refreshKey}`}
                 parentId={id!}
                 parentType="application"
                 parentEmail={dbApplication.email}
                 parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
               />
               <UnifiedAssistantComplianceCard
+                key={`assistant-${refreshKey}`}
                 parentId={id!}
                 parentType="application"
                 parentEmail={dbApplication.email}
                 parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
               />
               <UnifiedCochildminderComplianceCard
+                key={`cochildminder-${refreshKey}`}
                 parentId={id!}
                 parentType="application"
                 parentEmail={dbApplication.email}
@@ -481,6 +486,7 @@ const ApplicationDetailNew = () => {
             {/* External Checks - Ofsted & Local Authority */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <KnownToOfstedCard
+                key={`ofsted-${refreshKey}`}
                 parentId={id!}
                 parentType="application"
                 applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
@@ -514,6 +520,7 @@ const ApplicationDetailNew = () => {
                 role="childminder"
               />
               <LocalAuthorityCheckCard
+                key={`la-${refreshKey}`}
                 parentId={id!}
                 parentType="application"
                 applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
